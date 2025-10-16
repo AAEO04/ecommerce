@@ -1,0 +1,260 @@
+# MAD RUSH E-commerce Platform
+
+A comprehensive, scalable e-commerce platform built with microservices architecture, featuring a Python FastAPI backend and React/Next.js frontends. Perfect for streetwear and urban fashion brands.
+
+## 🚀 Features
+
+### Backend Services
+- **API Gateway**: Central routing with rate limiting and authentication
+- **Product Service**: Product catalog with Redis caching and search
+- **Admin Service**: Complete CRUD operations for product management
+- **Order Service**: Checkout processing with payment integration
+- **Notification Service**: Email and SMS notifications
+
+### Frontend Applications
+- **Customer Store**: Modern Next.js storefront with MAD RUSH branding
+- **Admin Panel**: React-based admin interface for product management
+
+### Key Features
+- ✅ Microservices architecture with Docker
+- ✅ PostgreSQL database with comprehensive models
+- ✅ Redis caching for performance
+- ✅ RabbitMQ message queuing
+- ✅ Payment processing (Paystack integration)
+- ✅ Email and SMS notifications
+- ✅ Responsive design with Tailwind CSS
+- ✅ Rate limiting and security headers
+- ✅ Health checks and monitoring
+- ✅ Scalable and production-ready
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐
+│   Customer      │    │   Admin Panel   │
+│   Store         │    │                 │
+│   (Next.js)     │    │   (React)       │
+└─────────┬───────┘    └─────────┬───────┘
+          │                      │
+          └──────────┬───────────┘
+                     │
+          ┌─────────────────┐
+          │   API Gateway   │
+          │   (Nginx)       │
+          └─────────┬───────┘
+                    │
+    ┌───────────────┼───────────────┐
+    │               │               │
+┌───▼───┐      ┌────▼────┐      ┌───▼───┐
+│Product│      │ Admin   │      │ Order │
+│Service│      │Service  │      │Service│
+└───┬───┘      └────┬────┘      └───┬───┘
+    │               │               │
+    └───────────────┼───────────────┘
+                    │
+          ┌─────────────────┐
+          │   PostgreSQL    │
+          │   Database      │
+          └─────────────────┘
+```
+
+## 🛠️ Tech Stack
+
+### Backend
+- **FastAPI**: Modern Python web framework
+- **PostgreSQL**: Primary database
+- **Redis**: Caching and session storage
+- **RabbitMQ**: Message queuing
+- **SQLAlchemy**: ORM and database management
+- **Pydantic**: Data validation
+- **Celery**: Background task processing
+
+### Frontend
+- **Next.js**: React framework for customer store
+- **React**: Admin panel
+- **Tailwind CSS**: Utility-first CSS framework
+- **TypeScript**: Type safety
+- **Heroicons**: Icon library
+
+### Infrastructure
+- **Docker & Docker Compose**: Containerization
+- **Nginx**: Reverse proxy and load balancer
+- **Health Checks**: Service monitoring
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
+
+### 1. Clone and Setup
+```bash
+git clone <repository-url>
+cd ecommerce
+cp env.example .env
+```
+
+### 2. Configure Environment
+Edit `.env` file with your configuration:
+```bash
+# Update database credentials
+DATABASE_USER=your_db_user
+DATABASE_PASSWORD=your_db_password
+
+# Add payment keys (optional for development)
+PAYSTACK_SECRET_KEY=sk_test_your_key
+PAYSTACK_PUBLIC_KEY=pk_test_your_key
+
+# Add email configuration (optional)
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+```
+
+### 3. Launch the Platform
+```bash
+docker-compose up --build
+```
+
+### 4. Access the Applications
+- **Customer Store**: http://localhost:3000
+- **Admin Panel**: http://localhost:3001
+- **API Gateway**: http://localhost:8000
+- **Database**: localhost:5432
+- **Redis**: localhost:6379
+- **RabbitMQ Management**: http://localhost:15672
+
+## 📱 Applications
+
+### Customer Store (http://localhost:3000)
+Modern e-commerce storefront featuring:
+- Hero section with MAD RUSH branding
+- Product catalog with filtering and search
+- Shopping cart functionality
+- Responsive design
+- SEO optimization
+
+### Admin Panel (http://localhost:3001)
+Complete admin interface for:
+- Product management (CRUD operations)
+- Order management
+- Category management
+- Inventory tracking
+- Customer management
+
+## 🔧 API Endpoints
+
+### Product Service (Port 8001)
+- `GET /products/` - List products with filtering
+- `GET /products/{id}` - Get product details
+- `GET /categories/` - List categories
+
+### Admin Service (Port 8002)
+- `POST /admin/products/` - Create product
+- `PUT /admin/products/{id}` - Update product
+- `DELETE /admin/products/{id}` - Delete product
+- `GET /admin/orders/` - List orders
+
+### Order Service (Port 8003)
+- `POST /checkout/` - Process checkout
+- `GET /orders/{id}` - Get order details
+- `PUT /orders/{id}/status` - Update order status
+
+### Notification Service (Port 8004)
+- `POST /notifications/order/{id}` - Send order notification
+- `POST /notifications/test-email` - Test email
+- `POST /notifications/test-sms` - Test SMS
+
+## 🗄️ Database Schema
+
+### Core Tables
+- **products**: Product information
+- **productvariants**: Size, color, price, stock
+- **productimages**: Product images
+- **orders**: Order details
+- **orderitems**: Order line items
+- **categories**: Product categories
+- **customers**: Customer information
+
+## 🔐 Security Features
+
+- Rate limiting on API endpoints
+- CORS configuration
+- Security headers
+- Input validation with Pydantic
+- SQL injection prevention
+- XSS protection
+
+## 📊 Monitoring
+
+All services include health check endpoints:
+- `/health` - Service health status
+- Database connectivity checks
+- Redis connectivity checks
+- External service status
+
+## 🚀 Deployment
+
+### Production Deployment
+1. Update environment variables for production
+2. Configure SSL certificates
+3. Set up domain names
+4. Configure email and SMS services
+5. Set up monitoring and logging
+
+### Scaling
+- Horizontal scaling with Docker Swarm or Kubernetes
+- Database read replicas
+- Redis clustering
+- Load balancing with Nginx
+
+## 🛠️ Development
+
+### Local Development Setup
+```bash
+# Backend services
+cd backend/product_service
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8001
+
+# Frontend development
+cd frontend/customer_store
+npm install
+npm run dev
+```
+
+### Adding New Services
+1. Create service directory in `backend/`
+2. Add Dockerfile and requirements.txt
+3. Update docker-compose.yml
+4. Add service to API gateway routing
+5. Update nginx configuration
+
+## 📝 Environment Variables
+
+See `env.example` for all available configuration options.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For support and questions:
+- Email: hello@madrush.com
+- Documentation: [Link to docs]
+- Issues: [GitHub Issues]
+
+---
+
+**MAD RUSH** - NO CHILLS, Just Style 🚀
