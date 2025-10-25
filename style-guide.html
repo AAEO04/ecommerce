@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecommerce Design System - Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Color System */
+    :root {
+      /* Backgrounds */
+      --white: #FFFFFF;
+      --off-white: #FAFAFA;
+      --border: #E5E7EB;
+      
+      /* Text */
+      --text-primary: #171717;
+      --text-secondary: #6B7280;
+      --text-muted: #9CA3AF;
+      
+      /* Brand Colors */
+      --green: #10B981;
+      --green-light: #D1FAE5;
+      --green-dark: #065F46;
+      
+      --purple: #8B5CF6;
+      --purple-light: #EDE9FE;
+      --purple-dark: #5B21B6;
+      
+      --red: #EF4444;
+      --red-light: #FEE2E2;
+      --red-dark: #991B1B;
+      
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: var(--off-white);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+    
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 0;
+      margin-bottom: 3rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    
+    h2 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin: 3rem 0 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem;
+      color: var(--text-secondary);
+    }
+    
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    
+    .subtitle {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    
+    /* Section Styles */
+    section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    /* Color Swatches */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .color-swatch {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .color-block {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    
+    .color-info {
+      padding: 1rem;
+      background: var(--white);
+    }
+    
+    .color-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .color-hex {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      font-family: 'Courier New', monospace;
+    }
+    
+    .color-usage {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+    
+    /* Button Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      gap: 0.5rem;
+      margin: 0.5rem;
+    }
+    
+    .btn-success {
+      background-color: var(--green);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: var(--green-dark);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    .btn-premium {
+      background-color: var(--purple);
+      color: white;
+    }
+    
+    .btn-premium:hover {
+      background-color: var(--purple-dark);
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    .btn-urgent {
+      background-color: var(--red);
+      color: white;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    .btn-urgent:hover {
+      background-color: var(--red-dark);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      transform: translateY(-1px);
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--off-white);
+      border-color: var(--purple);
+      color: var(--purple);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    /* Badge Styles */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      line-height: 1;
+      margin: 0.5rem;
+    }
+    
+    .badge-new {
+      background-color: var(--green);
+      color: white;
+    }
+    
+    .badge-sale {
+      background-color: var(--red);
+      color: white;
+      font-weight: 700;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    .badge-premium {
+      background-color: var(--purple-light);
+      color: var(--purple-dark);
+      border: 1px solid var(--purple);
+    }
+    
+    .badge-success {
+      background-color: var(--green-light);
+      color: var(--green-dark);
+      border: 1px solid var(--green);
+    }
+    
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--text-primary);
+      background-color: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    /* Alert Styles */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 4px solid;
+    }
+    
+    .alert-success {
+      background-color: var(--green-light);
+      color: var(--green-dark);
+      border-color: var(--green);
+    }
+    
+    .alert-info {
+      background-color: var(--purple-light);
+      color: var(--purple-dark);
+      border-color: var(--purple);
+    }
+    
+    .alert-warning {
+      background-color: var(--red-light);
+      color: var(--red-dark);
+      border-color: var(--red);
+    }
+    
+    /* Link Styles */
+    a {
+      color: var(--purple);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    a:hover {
+      color: var(--purple-dark);
+      text-decoration: underline;
+    }
+    
+    /* Card Styles */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+    
+    .card-image {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 3rem;
+    }
+    
+    .card-content {
+      padding: 1.5rem;
+    }
+    
+    .card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .card-price {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    
+    /* Component Demo Wrapper */
+    .demo-wrapper {
+      padding: 2rem;
+      background: var(--off-white);
+      border-radius: 8px;
+      margin: 1rem 0;
+    }
+    
+    .demo-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Ecommerce Design System</h1>
+      <p class="subtitle">Modern, clean design with strategic brand color accents</p>
+    </div>
+  </header>
+  
+  <div class="container">
+    
+    <!-- Color Palette -->
+    <section>
+      <h2>🎨 Color Palette</h2>
+      <p>Our brand colors are used strategically to guide user actions and create a clean, modern aesthetic.</p>
+      
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="color-block" style="background-color: #FFFFFF; color: #171717; border-bottom: 1px solid #E5E7EB;">
+            White
+          </div>
+          <div class="color-info">
+            <div class="color-name">White</div>
+            <div class="color-hex">#FFFFFF</div>
+            <div class="color-usage">Primary background (80%+ of UI)</div>
+          </div>
+        </div>
+        
+        <div class="color-swatch">
+          <div class="color-block" style="background-color: #10B981;">
+            Green
+          </div>
+          <div class="color-info">
+            <div class="color-name">Green</div>
+            <div class="color-hex">#10B981</div>
+            <div class="color-usage">Success, Add to Cart, positive actions</div>
+          </div>
+        </div>
+        
+        <div class="color-swatch">
+          <div class="color-block" style="background-color: #8B5CF6;">
+            Purple
+          </div>
+          <div class="color-info">
+            <div class="color-name">Purple</div>
+            <div class="color-hex">#8B5CF6</div>
+            <div class="color-usage">Links, hover states, premium features</div>
+          </div>
+        </div>
+        
+        <div class="color-swatch">
+          <div class="color-block" style="background-color: #EF4444;">
+            Red
+          </div>
+          <div class="color-info">
+            <div class="color-name">Red</div>
+            <div class="color-hex">#EF4444</div>
+            <div class="color-usage">Urgency, sales, warnings, delete</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Buttons -->
+    <section>
+      <h2>🔘 Buttons</h2>
+      <p>Semantic button colors guide users to the right actions.</p>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">Primary Actions</div>
+        <button class="btn btn-success">Add to Cart</button>
+        <button class="btn btn-success">Save Changes</button>
+        <button class="btn btn-success">Create Product</button>
+      </div>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">Secondary Actions (Info/Details)</div>
+        <button class="btn btn-premium">View Details</button>
+        <button class="btn btn-premium">Premium Feature</button>
+        <button class="btn btn-premium">Learn More</button>
+      </div>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">Urgent/Critical Actions</div>
+        <button class="btn btn-urgent">Buy Now - 50% OFF</button>
+        <button class="btn btn-urgent">Limited Time Offer</button>
+        <button class="btn btn-urgent">Delete Product</button>
+      </div>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">Outline Buttons</div>
+        <button class="btn btn-outline">Cancel</button>
+        <button class="btn btn-outline">Go Back</button>
+        <button class="btn btn-outline">Skip</button>
+      </div>
+    </section>
+    
+    <!-- Badges -->
+    <section>
+      <h2>🏷️ Badges</h2>
+      <p>Visual indicators for product status and features.</p>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">Product Status Badges</div>
+        <span class="badge badge-new">NEW</span>
+        <span class="badge badge-sale">SALE</span>
+        <span class="badge badge-premium">PREMIUM</span>
+        <span class="badge badge-success">In Stock</span>
+      </div>
+      
+      <div class="demo-wrapper">
+        <div class="demo-label">On Product Cards</div>
+        <div style="display: inline-block; margin: 0.5rem;">
+          <span class="badge badge-new">NEW ARRIVAL</span>
+        </div>
+        <div style="display: inline-block; margin: 0.5rem;">
+          <span class="badge badge-sale">50% OFF</span>
+        </div>
+        <div style="display: inline-block; margin: 0.5rem;">
+          <span class="badge badge-premium">VIP EXCLUSIVE</span>
+        </div>
+        <div style="display: inline-block; margin: 0.5rem;">
+          <span class="badge badge-success">✓ Available</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Forms -->
+    <section>
+      <h2>📝 Forms</h2>
+      <p>Input fields with purple focus states for clear interaction feedback.</p>
+      
+      <div class="demo-wrapper">
+        <div style="max-width: 500px;">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" placeholder="your@email.com">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Product Name</label>
+            <input type="text" class="form-input" placeholder="Enter product name">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="form-input" rows="4" placeholder="Your message here..."></textarea>
+          </div>
+          
+          <button class="btn btn-success">Submit</button>
+          <button class="btn btn-outline">Cancel</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Alerts -->
+    <section>
+      <h2>🔔 Alerts & Notifications</h2>
+      <p>Color-coded alerts for different message types.</p>
+      
+      <div class="demo-wrapper">
+        <div class="alert alert-success">
+          <strong>Success!</strong> Product has been added to your cart.
+        </div>
+        
+        <div class="alert alert-info">
+          <strong>Info:</strong> Check out our new premium membership benefits.
+        </div>
+        
+        <div class="alert alert-warning">
+          <strong>Warning:</strong> Only 2 items left in stock!
+        </div>
+      </div>
+    </section>
+    
+    <!-- Links -->
+    <section>
+      <h2>🔗 Links</h2>
+      <p>All links use purple to create consistent interactive experience.</p>
+      
+      <div class="demo-wrapper">
+        <p style="color: var(--text-secondary);">
+          This is a paragraph with <a href="#">a purple link</a> that changes on hover. 
+          <a href="#">Another link here</a> maintains the same styling for consistency.
+        </p>
+        
+        <div style="margin-top: 1rem;">
+          <a href="#">Learn more about our products</a> •
+          <a href="#">View shipping information</a> •
+          <a href="#">Contact support</a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Product Cards -->
+    <section>
+      <h2>🛍️ Product Card Examples</h2>
+      <p>Complete product cards demonstrating the design system in action.</p>
+      
+      <div class="grid grid-3">
+        <!-- Card 1 - New Product -->
+        <div class="card">
+          <div style="position: relative;">
+            <div class="card-image">
+              <span style="font-size: 4rem;">👕</span>
+            </div>
+            <span class="badge badge-new" style="position: absolute; top: 12px; right: 12px;">NEW</span>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Premium Hoodie</h3>
+            <div class="card-price">$99.99</div>
+            <span class="badge badge-success" style="margin-bottom: 1rem;">✓ In Stock</span>
+            <button class="btn btn-success" style="width: 100%; margin: 0.5rem 0;">Add to Cart</button>
+            <a href="#" style="display: block; text-align: center; font-size: 0.875rem;">View Details</a>
+          </div>
+        </div>
+        
+        <!-- Card 2 - Sale Product -->
+        <div class="card">
+          <div style="position: relative;">
+            <div class="card-image">
+              <span style="font-size: 4rem;">👟</span>
+            </div>
+            <span class="badge badge-sale" style="position: absolute; top: 12px; right: 12px;">50% OFF</span>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Running Shoes</h3>
+            <div class="card-price">
+              <span style="text-decoration: line-through; color: var(--text-muted); font-size: 1rem; margin-right: 0.5rem;">$120.00</span>
+              $60.00
+            </div>
+            <span class="badge badge-success" style="margin-bottom: 1rem;">✓ In Stock</span>
+            <button class="btn btn-urgent" style="width: 100%; margin: 0.5rem 0;">Buy Now</button>
+            <a href="#" style="display: block; text-align: center; font-size: 0.875rem;">View Details</a>
+          </div>
+        </div>
+        
+        <!-- Card 3 - Premium Product -->
+        <div class="card">
+          <div style="position: relative;">
+            <div class="card-image">
+              <span style="font-size: 4rem;">⌚</span>
+            </div>
+            <span class="badge badge-premium" style="position: absolute; top: 12px; right: 12px;">PREMIUM</span>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">Smart Watch</h3>
+            <div class="card-price">$299.99</div>
+            <span class="badge badge-success" style="margin-bottom: 1rem;">✓ In Stock</span>
+            <button class="btn btn-success" style="width: 100%; margin: 0.5rem 0;">Add to Cart</button>
+            <a href="#" style="display: block; text-align: center; font-size: 0.875rem;">View Details</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section>
+      <h2>📖 Typography</h2>
+      <p>Clean, readable typography with Inter font family.</p>
+      
+      <div class="demo-wrapper">
+        <h1 style="margin-bottom: 1rem;">Heading 1 - 2.5rem</h1>
+        <h2 style="margin-bottom: 1rem; border: none; padding: 0;">Heading 2 - 1.875rem</h2>
+        <h3 style="margin-bottom: 1rem;">Heading 3 - 1.25rem</h3>
+        <p>Body text - 1rem. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        <p style="font-size: 0.875rem; color: var(--text-secondary);">Small text - 0.875rem. Used for captions, metadata, and supporting information.</p>
+      </div>
+    </section>
+
+    <!-- Spacing -->
+    <section>
+      <h2>📏 Spacing & Layout</h2>
+      <p>Generous whitespace creates a clean, premium feel.</p>
+      
+      <div class="demo-wrapper">
+        <div style="background: var(--white); padding: 3rem; border-radius: 8px; text-align: center;">
+          <h3 style="margin-bottom: 2rem;">Ample Whitespace Example</h3>
+          <p style="max-width: 600px; margin: 0 auto;">
+            Notice the generous spacing around this content. This creates a calm, uncluttered 
+            shopping experience that allows products to breathe and users to focus.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Design Principles -->
+    <section>
+      <h2>✨ Design Principles</h2>
+
+      <div class="grid grid-2">
+        <div>
+          <h3>✅ Do</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Use white as dominant background (80%+)</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Apply green to "Add to Cart" CTAs</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Use purple for all links</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Reserve red for urgency and sales</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Maintain generous whitespace</li>
+            <li style="padding: 0.5rem 0;">Ensure color contrast meets WCAG AA</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>❌ Don't</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Mix all brand colors on one component</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Use colored backgrounds for large sections</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Apply red to non-urgent actions</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Reduce whitespace to fit more content</li>
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);">Use color as the only state indicator</li>
+            <li style="padding: 0.5rem 0;">Forget hover and focus states</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    
+    <footer style="margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--border); text-align: center;">
+      <p style="color: var(--text-muted); font-size: 0.875rem;">
+        Ecommerce Design System v1.0 • October 2025<br>
+        <a href="BRAND_COLOR_GUIDELINES.md">View Complete Guidelines</a> • 
+        <a href="CSS_SNIPPETS.md">CSS Snippets</a> • 
+        <a href="IMPLEMENTATION_GUIDE.md">Implementation Guide</a>
+      </p>
+    </footer>
+    
+  </div>
+</body>
+</html>
+

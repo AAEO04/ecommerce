@@ -1,32 +1,29 @@
 {
-  "name": "mad-rush-store",
+  "name": "customer_store",
   "version": "1.0.0",
-  "description": "MAD RUSH E-commerce Customer Store",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "axios": "^1.6.2",
-    "@heroicons/react": "^2.0.18",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.1.0"
+    "@types/canvas-confetti": "^1.9.0",
+    "canvas-confetti": "^1.9.3",
+    "lucide-react": "^0.268.0",
+    "next": "^14.2.33",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "zustand": "^4.4.0"
   },
   "devDependencies": {
-    "@types/node": "^20.10.4",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.18",
-    "autoprefixer": "^10.4.16",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "14.0.4",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.3.6",
-    "typescript": "^5.3.3"
+    "@types/node": "^24.9.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.4.8",
+    "typescript": "^5.2.2"
   }
 }

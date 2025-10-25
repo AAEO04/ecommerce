@@ -1,0 +1,160 @@
+
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:13-alpine
+    container_name: madrush_db
+    environment:
+      - POSTGRES_USER=madrush_user
+      - POSTGRES_PASSWORD=madrush_password
+      - POSTGRES_DB=madrush_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U madrush_user -d madrush_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: madrush_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ for Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: madrush_rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=madrush
+      - RABBITMQ_DEFAULT_PASS=madrush_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Monolith API
+  backend:
+    build:
+      context: ./backend/monolith
+      dockerfile: Dockerfile
+    container_name: madrush_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=madrush_user
+      - DATABASE_PASSWORD=madrush_password
+      - DATABASE_NAME=madrush_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=madrush
+      - RABBITMQ_PASSWORD=madrush_password
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      # Add other environment variables as needed
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY:-}
+      - PAYSTACK_PUBLIC_KEY=${PAYSTACK_PUBLIC_KEY:-}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SENDER_EMAIL=${SENDER_EMAIL:-noreply@madrush.com}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your_jwt_secret_key_here}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-your_encryption_key_here}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./backend/monolith:/app
+      - /app/__pycache__
+      - /app/venv
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Customer Store Frontend
+  customer_store:
+    build:
+      context: ./frontend/customer_store
+      dockerfile: Dockerfile
+    container_name: madrush_customer_store
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./frontend/customer_store:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Admin Panel Frontend
+  admin_panel:
+    build:
+      context: ./frontend/admin_panel
+      dockerfile: Dockerfile
+    container_name: madrush_admin_panel
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/admin
+      - NEXT_PUBLIC_PRODUCT_API_URL=http://localhost:8000/api
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./frontend/admin_panel:/app
+      - /app/node_modules
+      - /app/.next
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

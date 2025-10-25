@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Font Loading */
+  @font-face {
+    font-family: 'Bebas Neue';
+    src: url('/fonts/BebasNeue.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* Base Styles */
+  :root {
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-primary antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Button Styles */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-purple;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-primary hover:bg-surface;
+  }
+
+  .btn-accent {
+    @apply bg-accent-green text-white hover:bg-accent-green/90;
+  }
+
+  /* Form Styles */
+  .form-input {
+    @apply block w-full rounded-lg border border-border px-4 py-3 text-primary;
+    @apply focus:outline-none focus:ring-2 focus:ring-accent-purple;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-secondary mb-2;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply rounded-lg border border-border bg-surface p-4;
+  }
+
+  /* Product Card */
+  .product-card {
+    @apply group relative overflow-hidden rounded-lg bg-surface;
+    @apply transform transition duration-300 hover:scale-105;
+  }
+
+  .product-card-image {
+    @apply aspect-square w-full object-cover;
+  }
+
+  /* Typography Scale */
+  .hero-text {
+    @apply font-display text-5xl md:text-6xl font-bold tracking-tight;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-semibold;
+  }
+
+  .card-title {
+    @apply text-xl font-semibold;
+  }
+}
+
+/* Animation Utilities */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
