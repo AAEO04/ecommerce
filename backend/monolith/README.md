@@ -58,21 +58,6 @@ npm run dev
 # Visit: http://localhost:3001
 ```
 
-## API Endpoints
-
-### Products
-- `GET /api/products/` - List products
-- `GET /api/products/{id}` - Get product details
-
-### Admin
-- `GET /api/admin/dashboard/stats` - Dashboard data
-- `GET /api/admin/products` - Manage products
-- `GET /api/admin/orders` - Manage orders
-
-### Orders
-- `POST /api/orders/checkout` - Process checkout
-- `GET /api/orders/{id}` - Get order details
-
 ## Notes
 
 - **Database**: Requires PostgreSQL (ensure it's running)
@@ -80,5 +65,5 @@ npm run dev
 - **Paystack**: Configure keys for payment processing
 - **Email**: Configure SMTP for order notifications
 
-See `MONOLITHIC_MIGRATION_COMPLETE.md` in the root for full documentation.
+For a complete list of API endpoints, please refer to the `README.md` in the project root directory.
 

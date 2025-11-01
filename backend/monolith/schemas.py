@@ -1,5 +1,5 @@
 # file: schemas.py
-from pydantic import BaseModel, EmailStr, validator, Field
+from pydantic import BaseModel, EmailStr, validator, Field, HttpUrl
 from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
@@ -65,7 +65,7 @@ class ProductVariantCreate(BaseModel):
         return v
 
 class ProductImageCreate(BaseModel):
-    image_url: str
+    image_url: HttpUrl
     alt_text: Optional[str] = None
     display_order: int = 0
     is_primary: bool = False
@@ -144,6 +144,7 @@ class CheckoutRequest(BaseModel):
     billing_address: Optional[str] = Field(None, max_length=1000)
     payment_method: str = Field("card", max_length=50)
     notes: Optional[str] = Field(None, max_length=1000)
+    idempotency_key: str = Field(..., min_length=1, max_length=255)
 
     @validator('cart')
     def cart_must_not_be_empty(cls, v):

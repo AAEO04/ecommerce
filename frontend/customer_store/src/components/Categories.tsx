@@ -1,6 +1,10 @@
 'use client'
+import React from 'react';
+// AFTER
+import { Hoodie } from 'lucide-react'; // Or the specific icon you need
+import { Shirt } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
-import { Shirt, Hoodie, Zap } from 'lucide-react'
 
 const categories = [
   { name: 'T-Shirts', icon: <Shirt /> },

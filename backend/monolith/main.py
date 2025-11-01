@@ -1,26 +1,16 @@
 # file: main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from routers import products, admin, orders, notifications, auth
-from database import engine, SessionLocal
-import models
+from routers import products, admin, orders, notifications, auth, payment
+from database import SessionLocal
 from config import settings
 from utils.rate_limiting import limiter, rate_limit_handler
 
 import os
 from sqlalchemy import text
-
-# In development, allow creating tables for simplicity. In production, require migrations.
-if os.getenv("DEV_MODE") == "true":
-    try:
-        models.Base.metadata.create_all(bind=engine)
-        print("✅ DEV MODE: Database tables created/verified successfully.")
-    except Exception as e:
-        print(f"⚠️ DEV MODE: Database connection failed: {e}")
-        print("Note: The API will start but database operations will fail until DB is available.")
 
 app = FastAPI(
     title="MAD RUSH E-commerce API",
@@ -41,12 +31,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(products.router, prefix="/api/products", tags=["Products"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+app.include_router(payment.router, prefix="/api/webhooks", tags=["Webhooks"])
 
 @app.get("/")
 def read_root():

@@ -9,6 +9,7 @@ from config import settings
 from database import get_db
 from sqlalchemy.orm import Session
 import models
+from utils.constants import ADMIN_ROLE
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -71,7 +72,7 @@ def get_current_admin_from_cookie(token: str = Cookie(None, alias="admin_token")
     if not admin_user or not admin_user.is_active:
         raise HTTPException(status_code=401, detail="Admin user not found or inactive")
 
-    if payload.get("user_type") != "admin":
+    if payload.get("user_type") != ADMIN_ROLE:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     return {"username": admin_user.username, "user_type": admin_user.role}
@@ -80,7 +81,7 @@ def create_admin_token(username: str) -> str:
     """Create a JWT token for admin user"""
     data = {
         "username": username,
-        "user_type": "admin",
+        "user_type": ADMIN_ROLE,
         "iat": datetime.utcnow()
     }
     return create_access_token(data)

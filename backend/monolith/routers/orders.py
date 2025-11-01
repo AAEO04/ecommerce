@@ -1,8 +1,7 @@
 # file: routers/orders.py
 import uuid
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
-from utils.auth import get_current_admin
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session, joinedload
 from decimal import Decimal
 from typing import List, Optional
@@ -11,6 +10,7 @@ import models
 import schemas
 from database import get_db
 from utils.payment import process_payment
+from utils import auth
 from utils.notifications import send_order_confirmation
 from utils.rate_limiting import checkout_rate_limit
 from utils.error_handling import SecureErrorHandler
@@ -26,6 +26,7 @@ def generate_order_number() -> str:
 @router.post("/checkout")
 @checkout_rate_limit()
 def process_checkout(
+    request: Request,
     checkout_data: schemas.CheckoutRequest,
     db: Session = Depends(get_db)
 ):
@@ -33,6 +34,21 @@ def process_checkout(
     Process a customer's checkout request with payment integration.
     """
     try:
+        # Check for existing order with idempotency key
+        if checkout_data.idempotency_key:
+            existing_order = db.query(models.Order).filter(
+                models.Order.idempotency_key == checkout_data.idempotency_key
+            ).first()
+            if existing_order:
+                return {
+                    "message": "Order already processed!",
+                    "order_id": existing_order.id,
+                    "order_number": existing_order.order_number,
+                    "payment_reference": existing_order.payment_reference,
+                    "total_amount": float(existing_order.total_amount),
+                    "status": existing_order.status
+                }
+
         # Generate order number and payment reference
         order_number = generate_order_number()
         payment_reference = f"pay_{str(uuid.uuid4()).replace('-', '')}"
@@ -102,6 +118,7 @@ def process_checkout(
         # 3. Create the main Order record
         new_order = models.Order(
             order_number=order_number,
+            idempotency_key=checkout_data.idempotency_key,
             status="confirmed",
             payment_status="paid",
             payment_method=checkout_data.payment_method,
@@ -152,7 +169,7 @@ def process_checkout(
         return SecureErrorHandler.handle_generic_error(e, "order processing")
 
 @router.get("/{order_id}", response_model=schemas.OrderResponse)
-def get_order(order_id: int, db: Session = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
+def get_order(order_id: int, db: Session = Depends(get_db), current_admin: dict = Depends(auth.get_current_admin_from_cookie)):
     """Get order details by ID"""
     
     order = db.query(models.Order).options(
@@ -171,7 +188,7 @@ def list_orders(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_admin: dict = Depends(get_current_admin)
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie)
 ):
     """List orders with optional filtering"""
     
@@ -249,4 +266,3 @@ def process_refund(
         "refund_amount": float(refund_amount),
         "refund_reference": refund_reference
     }
-

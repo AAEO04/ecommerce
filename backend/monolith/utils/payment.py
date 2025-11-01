@@ -237,6 +237,9 @@ def process_payment(amount: Decimal, email: str, reference: str,
             "message": f"Payment processing failed: {str(e)}"
         }
 
+# IMPORTANT: Be cautious about logging sensitive payment data. Avoid logging raw card details,
+# full customer payment information, or API keys. Log only necessary information for debugging
+# and auditing, such as references, masked amounts, and general status.
 def verify_payment(reference: str) -> dict:
     """
     Verify Paystack payment

@@ -5,12 +5,12 @@ A comprehensive e-commerce platform built with a Python FastAPI monolithic backe
 ## 🚀 Features
 
 ### Backend Services
-- **Monolithic API**: A single, unified FastAPI application serving all backend logic.
-- **Product Management**: Full CRUD for products, variants, and categories.
-- **Order Processing**: Guest checkout, order tracking, and status management.
-- **Admin Dashboard**: Endpoints for statistics and store management.
-- **Payment Integration**: Support for Paystack.
-- **Notifications**: Email notifications for orders.
+- **Monolithic FastAPI Application**: A single, unified FastAPI application serving all backend logic, including:
+    - Product Management: Full CRUD for products, variants, and categories.
+    - Order Processing: Guest checkout, order tracking, and status management.
+    - Admin Dashboard: Endpoints for statistics and store management.
+    - Payment Integration: Support for Paystack.
+    - Notifications: Email notifications for orders.
 
 ### Frontend Applications
 - **Customer Store**: Modern Next.js storefront with MAD RUSH branding
@@ -30,33 +30,33 @@ A comprehensive e-commerce platform built with a Python FastAPI monolithic backe
 
 ## 🏗️ Current Architecture
 
+The platform is built around a monolithic FastAPI backend, serving both the customer-facing store and the admin panel. Nginx acts as a reverse proxy, routing requests to the appropriate frontend or directly to the backend API.
+
 ```
-┌─────────────────┐    ┌─────────────────┐
-│   Customer      │    │   Admin Panel   │
-│   Store         │    │                 │
-│   (Next.js)     │    │   (React)       │
-└─────────┬───────┘    └─────────┬───────┘
-          │                      │
-          └──────────┬───────────┘
-                     │
-          ┌─────────────────┐
-          │   API Gateway   │
-          │   (Nginx)       │
-          └─────────┬───────┘
-                    │
-    ┌───────────────┼───────────────┐
-    │               │               │
-┌───▼───┐      ┌────▼────┐      ┌───▼───┐
-│Product│      │ Admin   │      │ Order │
-│Service│      │Service  │      │Service│
-└───┬───┘      └────┬────┘      └───┬───┘
-    │               │               │
-    └───────────────┼───────────────┘
-                    │
-          ┌─────────────────┐
-          │   PostgreSQL    │
-          │   Database      │
-          └─────────────────┘
+┌─────────────────┐       ┌─────────────────┐
+│   Customer      │       │   Admin Panel   │
+│   Store         │       │                 │
+│   (Next.js)     │       │   (Next.js)     │
+└─────────┬───────┘       └─────────┬───────┘
+          │                         │
+          │     ┌─────────────────┐ │
+          └────►│   Nginx         ├─┘
+                │   (Reverse Proxy) │
+                └─────────┬───────┘
+                          │
+                          ▼
+                ┌─────────────────┐
+                │   Monolithic    │
+                │   FastAPI       │
+                │   Backend       │
+                └─────────┬───────┘
+                          │
+                          ▼
+                ┌─────────────────┐
+                │   PostgreSQL    │
+                │   Redis         │
+                │   RabbitMQ      │
+                └─────────────────┘
 ```
 
 ## 🛠️ Tech Stack
@@ -81,8 +81,8 @@ A comprehensive e-commerce platform built with a Python FastAPI monolithic backe
 
 ### 1. Clone and Setup
 ```bash
-git clone https://github.com/your-repo/madrush.git
-cd ecommerce
+git clone https://github.com/AAEO04/ecommerce.git
+cd madrush
 cp env.example .env
 ```
 
@@ -103,8 +103,15 @@ SMTP_PASSWORD=your_app_password
 ```
 
 ### 3. Launch the Platform
+
+For production or a quick start, use:
 ```bash
 docker-compose up --build
+```
+
+For local development with live-reloading, use the override file:
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
 ```
 
 ### 4. Access the Applications
@@ -135,23 +142,17 @@ Complete admin interface for:
 
 ## 🔧 API Endpoints
 
-### Product Service (Port 8001)
+### Monolithic API (Port 8000)
 - `GET /products/` - List products with filtering
 - `GET /products/{id}` - Get product details
 - `GET /categories/` - List categories
-
-### Admin Service (Port 8002)
 - `POST /admin/products/` - Create product
 - `PUT /admin/products/{id}` - Update product
 - `DELETE /admin/products/{id}` - Delete product
 - `GET /admin/orders/` - List orders
-
-### Order Service (Port 8003)
 - `POST /checkout/` - Process checkout
 - `GET /orders/{id}` - Get order details
 - `PUT /orders/{id}/status` - Update order status
-
-### Notification Service (Port 8004)
 - `POST /notifications/order/{id}` - Send order notification
 - `POST /notifications/test-email` - Test email
 - `POST /notifications/test-sms` - Test SMS
@@ -203,12 +204,12 @@ All services include health check endpoints:
 
 ### Local Development Setup
 ```bash
-# Backend services
-cd backend/product_service
+# Backend development
+cd backend/monolith
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8001
+uvicorn main:app --reload --port 8000
 
 # Frontend development
 cd frontend/customer_store
@@ -216,12 +217,17 @@ npm install
 npm run dev
 ```
 
-### Adding New Services
-1. Create service directory in `backend/`
-2. Add Dockerfile and requirements.txt
-3. Update docker-compose.yml
-4. Add service to API gateway routing
-5. Update nginx configuration
+#### Using `docker-compose.override.yml` for Development
+
+The `docker-compose.override.yml` file is designed to enhance your local development experience by enabling live-reloading for the `backend`, `customer_store`, and `admin_panel` services. When used with `docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build`, it mounts your local code into the containers, allowing changes to be reflected instantly without rebuilding the images.
+
+To leverage live-reloading, you might need to uncomment the `command` lines in `docker-compose.override.yml` for the services you are actively developing, and ensure your local development servers (e.g., `uvicorn` for backend, `npm run dev` for frontends) are configured for hot-reloading.
+
+
+### Adding New Features
+1. Implement feature in `backend/monolith`
+2. Update relevant frontend (customer_store or admin_panel)
+3. Add tests if applicable
 
 ## 📝 Environment Variables
 

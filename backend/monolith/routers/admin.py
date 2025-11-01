@@ -9,8 +9,8 @@ from decimal import Decimal
 import models
 import schemas
 from database import get_db
-from utils.cache import invalidate_cache
-from utils.auth import get_current_admin
+from utils import auth
+from utils.cache import invalidate_cache 
 
 router = APIRouter()
 
@@ -26,7 +26,7 @@ def generate_sku(product_name: str, size: str, color: Optional[str] = None) -> s
 
 @router.get("/dashboard/stats")
 def get_dashboard_stats(
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Get dashboard statistics for admin panel"""
@@ -84,7 +84,7 @@ def get_dashboard_stats(
 
 @router.get("/products", response_model=List[schemas.ProductResponse])
 def admin_get_products(
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1),
     search: Optional[str] = Query(None),
@@ -122,7 +122,7 @@ def admin_get_products(
 def create_product(
     product_data: schemas.ProductCreate,
     background_tasks: BackgroundTasks,
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Create a new product with variants and images"""
@@ -173,7 +173,7 @@ def update_product(
     product_id: int,
     product_data: schemas.ProductUpdate,
     background_tasks: BackgroundTasks,
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Update a product"""
@@ -204,7 +204,7 @@ def update_product(
 def delete_product(
     product_id: int,
     background_tasks: BackgroundTasks,
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Delete a product (soft delete by setting is_active=False)"""
@@ -225,7 +225,7 @@ def delete_product(
 
 @router.get("/orders")
 def admin_get_orders(
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     status: Optional[str] = Query(None),
     payment_status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
@@ -261,7 +261,7 @@ def admin_get_orders(
 @router.get("/orders/{order_id}", response_model=schemas.OrderResponse)
 def admin_get_order(
     order_id: int,
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Get order details by ID"""
@@ -279,7 +279,7 @@ def admin_get_order(
 def update_order_status(
     order_id: int,
     updates: dict,
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
     """Update order status"""
@@ -306,7 +306,7 @@ def update_order_status(
 
 @router.get("/categories", response_model=List[schemas.CategoryResponse])
 def get_admin_categories(
-    current_admin: dict = Depends(get_current_admin),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     include_inactive: bool = Query(False),
     db: Session = Depends(get_db)
 ):
@@ -319,4 +319,3 @@ def get_admin_categories(
     
     categories = query.all()
     return [schemas.CategoryResponse.from_orm(category) for category in categories]
-

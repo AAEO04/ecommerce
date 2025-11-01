@@ -7,6 +7,7 @@ from utils.rate_limiting import auth_rate_limit
 from config import settings
 from database import get_db
 from sqlalchemy.orm import Session
+from utils.constants import ADMIN_ROLE
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ class AdminInfo(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 @auth_rate_limit()
-def admin_login(login_data: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def admin_login(request: Request, login_data: LoginRequest, response: Response, db: Session = Depends(get_db)):
     """Authenticate admin user and return JWT token in HttpOnly cookie"""
     
     # Validate credentials
@@ -60,7 +61,7 @@ def get_admin_info(current_admin: dict = Depends(get_current_admin_from_cookie))
     """Get current admin information"""
     return AdminInfo(
         username=current_admin["username"],
-        user_type=current_admin["user_type"]
+        user_type=ADMIN_ROLE
     )
 
 @router.post("/logout")

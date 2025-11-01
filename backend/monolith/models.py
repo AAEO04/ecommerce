@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey, Numeric, DateT
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
+from utils.constants import ADMIN_ROLE
 
 class Product(Base):
     __tablename__ = "products"
@@ -51,6 +52,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_number = Column(String(50), unique=True, index=True)
+    idempotency_key = Column(String(255), unique=True, nullable=True, index=True)
     status = Column(String(50), default="pending")
     payment_status = Column(String(50), default="pending")
     payment_method = Column(String(50))
@@ -118,7 +120,7 @@ class AdminUser(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(50), default="admin", nullable=False)
+    role = Column(String(50), default=ADMIN_ROLE, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

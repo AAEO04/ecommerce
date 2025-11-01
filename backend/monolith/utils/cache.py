@@ -1,4 +1,5 @@
 # file: utils/cache.py
+import logging
 import redis
 import json
 from typing import Optional
@@ -59,6 +60,6 @@ def invalidate_cache(product_id: Optional[int] = None):
                 redis_client.delete(*keys)
             if cursor == 0:
                 break
-    except redis.RedisError:
-        pass
+    except redis.RedisError as e:
+        logging.error(f"Redis error during cache invalidation: {e}")
 

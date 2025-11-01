@@ -12,8 +12,7 @@ services:
       - POSTGRES_DB=madrush_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U madrush_user -d madrush_db"]
       interval: 30s
@@ -82,9 +81,9 @@ services:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
       - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-secret}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
       - DEV_MODE=true
     depends_on:

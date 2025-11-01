@@ -2,5 +2,9 @@
   "dependencies": {
     "framer-motion": "^12.23.24",
     "react-hot-toast": "^2.6.0"
+  },
+  "scripts": {
+    "start:admin": "cd admin_panel && npm run dev",
+    "start:store": "cd customer_store && npm run dev"
   }
 }

@@ -18,6 +18,11 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install ruff and run linting
+RUN pip install ruff
+RUN ruff check .
+
+
 # Copy application code
 COPY . .
 
