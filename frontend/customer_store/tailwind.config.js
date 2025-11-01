@@ -7,23 +7,61 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Light Mode
-        background: 'hsl(0 0% 100%)',
-        surface: 'hsl(0 0% 98%)',
-        primary: 'hsl(0 0% 9%)',
-        secondary: 'hsl(0 0% 45%)',
-        border: 'hsl(0 0% 90%)',
-        // Dark Mode (via class strategy)
-        'dark-background': 'hsl(0 0% 9%)',
-        'dark-surface': 'hsl(0 0% 14%)',
-        'dark-primary': 'hsl(0 0% 98%)',
-        'dark-secondary': 'hsl(0 0% 65%)',
-        'dark-border': 'hsl(0 0% 20%)',
-        // Accent Colors
+        // Base colors (darker for contrast)
+        background: {
+          DEFAULT: '#0A0A0A',     // Almost black
+          light: '#FAFAFA',       // Off-white (for cards)
+        },
+        
+        // Brand accent colors (your core identity)
         accent: {
-          red: '#FF0000',    // Primary Red - Sale badges, errors
-          green: '#00A676',  // Green - Add to Cart, success
-          purple: '#A100F2', // Purple - Highlights, links
+          // Green (primary CTA, success, energy)
+          green: {
+            DEFAULT: '#00D084',   // Brighter, more electric
+            50: '#E6FFF5',
+            100: '#B3FFE0',
+            500: '#00D084',       // Primary
+            600: '#00A676',       // Your current green
+            700: '#008C63',
+            900: '#005C42',
+          },
+          
+          // Red (urgency, sales, highlights)
+          red: {
+            DEFAULT: '#FF3B5C',   // Less harsh than pure red
+            50: '#FFE8ED',
+            100: '#FFCCD6',
+            500: '#FF3B5C',       // Primary
+            600: '#FF0000',       // Your current red
+            700: '#D6002E',
+            900: '#8F001F',
+          },
+          
+          // Purple (premium, exclusivity, links)
+          purple: {
+            DEFAULT: '#B857FF',   // Softer than current
+            50: '#F5EBFF',
+            100: '#E6D1FF',
+            500: '#B857FF',       // Primary
+            600: '#A100F2',       // Your current purple
+            700: '#8800CC',
+            900: '#5C0085',
+          },
+        },
+        
+        // Neutral palette (better contrast)
+        neutral: {
+          950: '#0A0A0A',         // True black
+          900: '#1A1A1A',         // Card backgrounds
+          800: '#2D2D2D',         // Borders
+          700: '#404040',
+          600: '#666666',
+          500: '#808080',
+          400: '#999999',
+          300: '#B3B3B3',
+          200: '#CCCCCC',
+          100: '#E6E6E6',
+          50: '#F5F5F5',
         },
       },
       fontFamily: {

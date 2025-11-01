@@ -1,21 +1,15 @@
-import { type FC } from 'react'
+import { HTMLAttributes } from 'react';
 
-export function GridSkeleton(){
-  return <div className="animate-pulse bg-gray-200 h-32 rounded" />
-}
-
-interface SkeletonProps {
-  className?: string
-}
-
-export const Skeleton: FC<SkeletonProps> = ({ className = '' }) => {
+function Skeleton({
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div 
-      className={`animate-pulse bg-muted rounded ${className}`}
-      role="status"
-      aria-label="Loading..."
+    <div
+      className={`animate-pulse rounded-md bg-gray-200 ${className}`}
+      {...props}
     />
-  )
+  );
 }
 
-export default Skeleton
+export { Skeleton };

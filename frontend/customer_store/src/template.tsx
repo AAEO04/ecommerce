@@ -1,15 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { pageVariants } from '@/lib/animations';
+import { pageVariants, pageTransition } from '@/lib/animations';
 
 export default function Template({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
       variants={pageVariants}
-      initial="hidden"
-      animate="visible"
-      transition={{ ease: 'easeInOut', duration: 0.75 }}
+      transition={pageTransition}
     >
       {children}
     </motion.div>

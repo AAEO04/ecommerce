@@ -2,6 +2,7 @@
 import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
+from utils.auth import get_current_admin
 from sqlalchemy.orm import Session, joinedload
 from decimal import Decimal
 from typing import List, Optional
@@ -151,7 +152,7 @@ def process_checkout(
         return SecureErrorHandler.handle_generic_error(e, "order processing")
 
 @router.get("/{order_id}", response_model=schemas.OrderResponse)
-def get_order(order_id: int, db: Session = Depends(get_db)):
+def get_order(order_id: int, db: Session = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     """Get order details by ID"""
     
     order = db.query(models.Order).options(
@@ -169,7 +170,8 @@ def list_orders(
     status: Optional[str] = None,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_admin: dict = Depends(get_current_admin)
 ):
     """List orders with optional filtering"""
     

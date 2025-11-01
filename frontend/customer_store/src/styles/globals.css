@@ -25,7 +25,7 @@
   }
 
   body {
-    @apply bg-background text-primary antialiased;
+    @apply bg-neutral-950 text-neutral-50 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -38,35 +38,35 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary/90;
+    @apply bg-neutral-900 text-neutral-50 hover:bg-neutral-800;
   }
 
   .btn-secondary {
-    @apply border-2 border-primary hover:bg-surface;
+    @apply border-2 border-neutral-800 hover:bg-neutral-900;
   }
 
   .btn-accent {
-    @apply bg-accent-green text-white hover:bg-accent-green/90;
+    @apply bg-accent-green text-white hover:bg-accent-green-700;
   }
 
   /* Form Styles */
   .form-input {
-    @apply block w-full rounded-lg border border-border px-4 py-3 text-primary;
+    @apply block w-full rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3 text-neutral-50;
     @apply focus:outline-none focus:ring-2 focus:ring-accent-purple;
   }
 
   .form-label {
-    @apply block text-sm font-medium text-secondary mb-2;
+    @apply block text-sm font-medium text-neutral-400 mb-2;
   }
 
   /* Card Styles */
   .card {
-    @apply rounded-lg border border-border bg-surface p-4;
+    @apply rounded-lg border border-neutral-800 bg-neutral-900 p-4;
   }
 
   /* Product Card */
   .product-card {
-    @apply group relative overflow-hidden rounded-lg bg-surface;
+    @apply group relative overflow-hidden rounded-lg bg-neutral-900;
     @apply transform transition duration-300 hover:scale-105;
   }
 
@@ -100,6 +100,61 @@
     }
     to {
       opacity: 1;
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, -1px); }
+    50% { transform: translate(1px, 1px); }
+    75% { transform: translate(-1px, 1px); }
+  }
+
+  @keyframes color-shift {
+    0%, 100% { border-color: #00D084; }
+    33% { border-color: #FF3B5C; }
+    66% { border-color: #B857FF; }
+  }
+
+  @keyframes pulse-text {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+
+  @keyframes progress {
+    0% { background-position: -100% 0; }
+    100% { background-position: 100% 0; }
+  }
+
+  .animated-gradient-border {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.5rem;
+  }
+
+  .animated-gradient-border::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(
+      from 0deg,
+      #00D084, /* accent-green */
+      #FF3B5C, /* accent-red */
+      #B857FF, /* accent-purple */
+      #00D084 /* accent-green */
+    );
+    animation: gradient-animation 4s linear infinite;
+  }
+
+  @keyframes gradient-animation {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
     }
   }
 }

@@ -1,5 +1,5 @@
-import { fetchProducts } from '@/lib/api'
 import { ProductGrid } from './ProductGrid'
+import { fetchProducts } from '@/lib/api'
 
 export default async function FeaturedProducts() {
   const products = await fetchProducts()
@@ -9,7 +9,7 @@ export default async function FeaturedProducts() {
   return (
     <section className="py-12">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl font-semibold mb-6">Featured Products</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-white">Featured Products</h2>
         <ProductGrid products={featured} />
       </div>
     </section>

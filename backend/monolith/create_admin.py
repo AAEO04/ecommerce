@@ -12,6 +12,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from utils.auth import get_password_hash
 from models import AdminUser, Base
 from config import settings
+from utils.constants import ADMIN_ROLE
 
 # Setup database connection
 DATABASE_URL = settings.DATABASE_URL
@@ -26,7 +27,7 @@ def create_initial_admin(db: Session, username: str, password: str):
         return
 
     hashed_password = get_password_hash(password)
-    admin_user = AdminUser(username=username, hashed_password=hashed_password, role="admin")
+    admin_user = AdminUser(username=username, hashed_password=hashed_password, role=ADMIN_ROLE)
     db.add(admin_user)
     db.commit()
     db.refresh(admin_user)

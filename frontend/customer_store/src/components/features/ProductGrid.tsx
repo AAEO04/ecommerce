@@ -1,16 +1,26 @@
-import ProductCard from '@/components/ProductCard'
-import type { Product } from '@/components/ProductCard'
+import { motion } from 'framer-motion';
+import ProductCard from '@/components/ProductCard';
+import type { Product } from '@/components/ProductCard';
+import { cardVariants } from '@/lib/animations';
 
 interface ProductGridProps {
-  products: Product[]
+  products: Product[];
 }
 
 export function ProductGrid({ products }: ProductGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <motion.div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      initial="offscreen"
+      whileInView="onscreen"
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ staggerChildren: 0.1 }}
+    >
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <motion.div key={product.id} variants={cardVariants}>
+          <ProductCard product={product} />
+        </motion.div>
       ))}
-    </div>
-  )
+    </motion.div>
+  );
 }
