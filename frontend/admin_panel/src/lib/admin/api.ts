@@ -1,4 +1,6 @@
 import type { Product, ApiResponse, AdminApiConfig } from '@/types/admin'
+import { CONFIG } from '@/lib/config'
+import { toast } from 'sonner'
 
 /**
  * Admin API Client with enhanced security features
@@ -35,10 +37,11 @@ class AdminApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
-          return {
-            success: false,
-            error: 'Authentication expired. Please log in again.'
+          toast.error('Session expired. Please log in again.')
+          if (typeof window !== 'undefined') {
+            window.location.href = '/admin/login'
           }
+          return { success: false, error: 'Authentication expired. Please log in again.' }
         }
 
         const errorData = await response.json().catch(() => ({}))
@@ -190,11 +193,15 @@ class AdminApiClient {
     status?: string
     paymentStatus?: string
     search?: string
+    page?: number
+    limit?: number
   }): Promise<ApiResponse<any[]>> {
     const params = new URLSearchParams()
     if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
     if (filters?.paymentStatus && filters.paymentStatus !== 'all') params.append('payment_status', filters.paymentStatus)
     if (filters?.search) params.append('search', filters.search)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.limit) params.append('limit', filters.limit.toString())
     
     const queryString = params.toString()
     return this.request(`${this.adminApiUrl}/orders/${queryString ? '?' + queryString : ''}`)
@@ -238,8 +245,8 @@ class AdminApiClient {
 
 // Create singleton instance
 const config: AdminApiConfig = {
-  adminApiUrl: process.env.NEXT_PUBLIC_ADMIN_API_URL || 'http://localhost:8000/api/admin',
-  productApiUrl: process.env.NEXT_PUBLIC_PRODUCT_API_URL || 'http://localhost:8000/api',
+  adminApiUrl: CONFIG.ADMIN_API_URL,
+  productApiUrl: CONFIG.PRODUCT_API_URL,
 }
 
 export const adminApi = new AdminApiClient(config)

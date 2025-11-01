@@ -1,16 +1,34 @@
-# React + Vite
+# MAD RUSH Admin Panel (Next.js)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Production-ready admin panel for managing products, orders, and settings.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm run dev     # Start dev server
+npm run build   # Build (standalone)
+npm run start   # Start production server
+```
 
-## React Compiler
+## Environment
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_ADMIN_API_URL=http://localhost:8000/api/admin
+NEXT_PUBLIC_PRODUCT_API_URL=http://localhost:8000/api
+```
 
-## Expanding the ESLint configuration
+## Docker
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+docker build -t admin-panel ./frontend/admin_panel
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_API_URL=http://host.docker.internal:8000 \
+  -e NEXT_PUBLIC_ADMIN_API_URL=http://host.docker.internal:8000/api/admin \
+  -e NEXT_PUBLIC_PRODUCT_API_URL=http://host.docker.internal:8000/api \
+  admin-panel
+```
+
+## Notes
+- Uses Tailwind CSS and shadcn-style components
+- Auth uses HttpOnly cookie from backend (`/api/auth/login`)

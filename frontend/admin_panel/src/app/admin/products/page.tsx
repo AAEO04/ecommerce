@@ -363,15 +363,16 @@ export default function AdminProducts() {
                     <div className="flex space-x-2">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
+                        aria-label={`Edit product ${product.name}`}
                         onClick={() => handleEdit(product)}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-4 w-4" aria-hidden="true" />
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                          <Button variant="outline" size="icon" aria-label={`Delete product ${product.name}`}>
+                            <Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

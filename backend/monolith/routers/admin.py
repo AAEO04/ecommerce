@@ -121,8 +121,8 @@ def admin_get_products(
 @router.post("/products", response_model=schemas.ProductResponse)
 def create_product(
     product_data: schemas.ProductCreate,
-    current_admin: dict = Depends(get_current_admin),
     background_tasks: BackgroundTasks,
+    current_admin: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Create a new product with variants and images"""
@@ -172,8 +172,8 @@ def create_product(
 def update_product(
     product_id: int,
     product_data: schemas.ProductUpdate,
-    current_admin: dict = Depends(get_current_admin),
     background_tasks: BackgroundTasks,
+    current_admin: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Update a product"""
@@ -203,8 +203,8 @@ def update_product(
 @router.delete("/products/{product_id}")
 def delete_product(
     product_id: int,
-    current_admin: dict = Depends(get_current_admin),
     background_tasks: BackgroundTasks,
+    current_admin: dict = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """Delete a product (soft delete by setting is_active=False)"""

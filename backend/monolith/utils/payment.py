@@ -192,7 +192,7 @@ def process_payment(amount: Decimal, email: str, reference: str,
         Dict containing payment result
     """
     try:
-        if not settings.PAYSTACK_SECRET_KEY:
+        if settings.PAYMENT_MODE == "mock":
             # Mock payment for development
             print(f"Mock payment processed: {email} - NGN{amount} - Ref: {reference}")
             return {
@@ -203,6 +203,9 @@ def process_payment(amount: Decimal, email: str, reference: str,
                 "authorization_url": f"https://checkout.paystack.com/{reference}",
                 "access_code": f"access_{reference}"
             }
+
+        if not settings.PAYSTACK_SECRET_KEY:
+            raise ValueError("Paystack secret key not configured for production mode")
 
         response = paystack_client.initialize_payment(
             amount=amount,
@@ -245,7 +248,7 @@ def verify_payment(reference: str) -> dict:
         Dict containing verification result
     """
     try:
-        if not settings.PAYSTACK_SECRET_KEY:
+        if settings.PAYMENT_MODE == "mock":
             return {
                 "status": "success",
                 "verified": True,
@@ -255,6 +258,9 @@ def verify_payment(reference: str) -> dict:
                 "payment_date": "2024-01-01T00:00:00.000000Z",
                 "channel": "card"
             }
+
+        if not settings.PAYSTACK_SECRET_KEY:
+            raise ValueError("Paystack secret key not configured for production mode")
 
         response = paystack_client.verify_payment(reference)
 

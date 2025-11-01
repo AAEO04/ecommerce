@@ -2,6 +2,7 @@
 
 import { useCartStore } from '@/stores/useCartStore'
 import Link from 'next/link'
+import { formatNGN } from '@/utils/currency'
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items)
@@ -23,7 +24,7 @@ export default function CartPage() {
                 <div className="text-sm text-muted-foreground">Qty: {it.quantity}</div>
               </div>
               <div className="flex items-center gap-2">
-                <div className="font-bold">${(it.price || 0) * it.quantity}</div>
+                <div className="font-bold">{formatNGN((it.price || 0) * it.quantity)}</div>
                 <button onClick={() => removeItem(it.id)} className="text-sm text-red-500">Remove</button>
               </div>
             </div>

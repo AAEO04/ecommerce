@@ -10,13 +10,17 @@ import models
 from config import settings
 from utils.rate_limiting import limiter, rate_limit_handler
 
-# Try to create all database tables (will fail gracefully if DB is not available)
-try:
-    models.Base.metadata.create_all(bind=engine)
-    print("✅ Database tables created/verified successfully")
-except Exception as e:
-    print(f"⚠️  Database connection failed: {e}")
-    print("Note: The API will start but database operations will fail until DB is available")
+import os
+from sqlalchemy import text
+
+# In development, allow creating tables for simplicity. In production, require migrations.
+if os.getenv("DEV_MODE") == "true":
+    try:
+        models.Base.metadata.create_all(bind=engine)
+        print("✅ DEV MODE: Database tables created/verified successfully.")
+    except Exception as e:
+        print(f"⚠️ DEV MODE: Database connection failed: {e}")
+        print("Note: The API will start but database operations will fail until DB is available.")
 
 app = FastAPI(
     title="MAD RUSH E-commerce API",
@@ -64,7 +68,7 @@ def health_check():
     # Check database
     try:
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         status["services"]["database"] = "connected"
     except Exception as e:

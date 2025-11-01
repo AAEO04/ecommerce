@@ -10,9 +10,13 @@ if TYPE_CHECKING:
 
 def send_email(to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
     """Send email notification"""
-    if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
+    if settings.NOTIFICATION_MOCK:
         print(f"Email notification (mock): {to_email} - {subject}")
         return True
+    
+    if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
+        print("SMTP credentials are not set. Email not sent.")
+        return False
     
     try:
         msg = MIMEMultipart('alternative')
@@ -41,9 +45,13 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
 
 def send_sms(to_phone: str, message: str) -> bool:
     """Send SMS notification via Twilio"""
-    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
+    if settings.NOTIFICATION_MOCK:
         print(f"SMS notification (mock): {to_phone} - {message}")
         return True
+    
+    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
+        print("Twilio credentials are not set. SMS not sent.")
+        return False
     
     try:
         from twilio.rest import Client

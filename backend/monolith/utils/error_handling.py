@@ -1,5 +1,6 @@
 # file: utils/error_handling.py
 import logging
+import uuid
 from typing import Any, Dict, Optional
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -24,7 +25,6 @@ class SecureErrorHandler:
         
         # Generate error ID for tracking
         if not error_id:
-            import uuid
             error_id = str(uuid.uuid4())[:8]
         
         # Log error details (server-side only)

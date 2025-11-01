@@ -1,22 +1,23 @@
 # MAD RUSH E-commerce Platform
 
-A comprehensive, scalable e-commerce platform built with microservices architecture, featuring a Python FastAPI backend and React/Next.js frontends. Perfect for streetwear and urban fashion brands.
+A comprehensive e-commerce platform built with a Python FastAPI monolithic backend and React/Next.js frontends. Perfect for streetwear and urban fashion brands.
 
 ## 🚀 Features
 
 ### Backend Services
-- **API Gateway**: Central routing with rate limiting and authentication
-- **Product Service**: Product catalog with Redis caching and search
-- **Admin Service**: Complete CRUD operations for product management
-- **Order Service**: Checkout processing with payment integration
-- **Notification Service**: Email and SMS notifications
+- **Monolithic API**: A single, unified FastAPI application serving all backend logic.
+- **Product Management**: Full CRUD for products, variants, and categories.
+- **Order Processing**: Guest checkout, order tracking, and status management.
+- **Admin Dashboard**: Endpoints for statistics and store management.
+- **Payment Integration**: Support for Paystack.
+- **Notifications**: Email notifications for orders.
 
 ### Frontend Applications
 - **Customer Store**: Modern Next.js storefront with MAD RUSH branding
-- **Admin Panel**: React-based admin interface for product management
+- **Admin Panel**: Next.js-based admin interface for product and order management
 
 ### Key Features
-- ✅ Microservices architecture with Docker
+- ✅ Monolithic architecture with Docker for simplified deployment
 - ✅ PostgreSQL database with comprehensive models
 - ✅ Redis caching for performance
 - ✅ RabbitMQ message queuing
@@ -27,7 +28,7 @@ A comprehensive, scalable e-commerce platform built with microservices architect
 - ✅ Health checks and monitoring
 - ✅ Scalable and production-ready
 
-## 🏗️ Architecture
+## 🏗️ Current Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐
@@ -61,20 +62,10 @@ A comprehensive, scalable e-commerce platform built with microservices architect
 ## 🛠️ Tech Stack
 
 ### Backend
-- **FastAPI**: Modern Python web framework
-- **PostgreSQL**: Primary database
-- **Redis**: Caching and session storage
-- **RabbitMQ**: Message queuing
-- **SQLAlchemy**: ORM and database management
-- **Pydantic**: Data validation
-- **Celery**: Background task processing
+- **RabbitMQ**: Message queuing (for background tasks)
 
 ### Frontend
-- **Next.js**: React framework for customer store
-- **React**: Admin panel
-- **Tailwind CSS**: Utility-first CSS framework
-- **TypeScript**: Type safety
-- **Heroicons**: Icon library
+- **Tailwind CSS**: Utility-first CSS framework (used in both frontends)
 
 ### Infrastructure
 - **Docker & Docker Compose**: Containerization
@@ -90,7 +81,7 @@ A comprehensive, scalable e-commerce platform built with microservices architect
 
 ### 1. Clone and Setup
 ```bash
-git clone <repository-url>
+git clone https://github.com/your-repo/madrush.git
 cd ecommerce
 cp env.example .env
 ```

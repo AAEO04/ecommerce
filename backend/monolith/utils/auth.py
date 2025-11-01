@@ -1,17 +1,19 @@
 # file: utils/auth.py
-import jwt
+from jose import jwt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from passlib.context import CryptContext
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, HTTPCookie
+from fastapi import HTTPException, status, Depends, Cookie
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from config import settings
+from database import get_db
+from sqlalchemy.orm import Session
+import models
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT Security
-security = HTTPBearer()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
@@ -51,47 +53,30 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def authenticate_admin(username: str, password: str) -> bool:
-    """Authenticate admin user"""
-    # In production, this should check against a database
-    # For now, we'll use environment variables
-    if username == settings.ADMIN_USERNAME and password == settings.ADMIN_PASSWORD:
-        return True
-    return False
+def authenticate_admin(username: str, password: str, db: Session) -> Optional[models.AdminUser]:
+    """Authenticate admin user against the database"""
+    admin_user = db.query(models.AdminUser).filter(models.AdminUser.username == username).first()
+    if admin_user and verify_password(password, admin_user.hashed_password):
+        return admin_user
+    return None
 
-def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
-    """Get current authenticated admin from JWT token"""
-    token = credentials.credentials
-    payload = verify_token(token)
-    
-    # Check if user is admin
-    if payload.get("user_type") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
-    
-    return payload
-
-def get_current_admin_from_cookie(token: str = Depends(HTTPCookie(name="admin_token"))) -> Dict[str, Any]:
-    """Get current authenticated admin from HttpOnly cookie"""
+def get_current_admin_from_cookie(token: str = Cookie(None, alias="admin_token"), db: Session = Depends(get_db)) -> Dict[str, Any]:
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
+        raise HTTPException(status_code=401, detail="Not authenticated", headers={"WWW-Authenticate": "Bearer"})
     payload = verify_token(token)
     
-    # Check if user is admin
-    if payload.get("user_type") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
+    username = payload.get("username")
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     
-    return payload
+    admin_user = db.query(models.AdminUser).filter(models.AdminUser.username == username).first()
+    if not admin_user or not admin_user.is_active:
+        raise HTTPException(status_code=401, detail="Admin user not found or inactive")
+
+    if payload.get("user_type") != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    return {"username": admin_user.username, "user_type": admin_user.role}
 
 def create_admin_token(username: str) -> str:
     """Create a JWT token for admin user"""

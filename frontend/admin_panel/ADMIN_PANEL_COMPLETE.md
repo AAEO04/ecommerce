@@ -147,7 +147,7 @@ Since deliveries are done manually, here's the recommended workflow:
 
 ### Colors:
 - **Primary:** Gray-900 (Dark) 
-- **Accent:** Orange-500 (#FF6B35)
+- **Accent:** purple
 - **Success:** Green
 - **Warning:** Yellow
 - **Danger:** Red
@@ -160,7 +160,7 @@ Since deliveries are done manually, here's the recommended workflow:
 ### Components:
 - **Cards:** Shadcn/UI + custom admin styles
 - **Buttons:** Primary (dark), Secondary (outline)
-- **Forms:** Orange focus rings
+- **Forms:** purple focus rings
 - **Tables:** Hover states, striped rows
 - **Modals:** Full-screen overlay with scroll
 

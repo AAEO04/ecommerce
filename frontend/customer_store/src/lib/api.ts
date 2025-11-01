@@ -1,4 +1,5 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { CONFIG } from '@/lib/config'
+export const API_BASE = CONFIG.API_BASE;
 
 export async function fetchProducts() {
   const res = await fetch(`${API_BASE}/api/products`, { cache: 'no-store' });

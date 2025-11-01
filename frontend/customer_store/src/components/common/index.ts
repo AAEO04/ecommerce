@@ -7,4 +7,4 @@
 
 export { default as Newsletter } from '../Newsletter'
 export { ErrorBoundary } from '../ErrorBoundary'
-export { AppLoading } from '../AppLoading'
+export { AppLoading } from './AppLoading'

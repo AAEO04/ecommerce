@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -45,15 +46,34 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [filter, setFilter] = useState({
     status: 'all',
     paymentStatus: 'all',
     search: ''
   })
 
+  // Initialize filters from query string once
   useEffect(() => {
+    const status = searchParams.get('status') || 'all'
+    const paymentStatus = searchParams.get('payment_status') || 'all'
+    const search = searchParams.get('search') || ''
+    setFilter({ status, paymentStatus, search })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist filters to query string when changed
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (filter.status && filter.status !== 'all') params.set('status', filter.status)
+    if (filter.paymentStatus && filter.paymentStatus !== 'all') params.set('payment_status', filter.paymentStatus)
+    if (filter.search) params.set('search', filter.search)
+    const query = params.toString()
+    router.replace(`/admin/orders${query ? `?${query}` : ''}`)
     fetchOrders()
-  }, [filter])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter.status, filter.paymentStatus, filter.search])
 
   const fetchOrders = async () => {
     setLoading(true)
@@ -229,62 +249,88 @@ export default function OrdersPage() {
                 <p className="text-gray-500">No orders found</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Payment</th>
-                      <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((order) => (
-                      <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-900">{order.order_number}</td>
-                        <td className="px-6 py-4">
-                          <div>
-                            <p className="font-medium text-gray-900">{order.customer_name}</p>
-                            <p className="text-sm text-gray-500">{order.customer_email}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 font-semibold text-gray-900">₦{parseFloat(order.total_amount.toString()).toFixed(2)}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                            {order.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
-                            order.payment_status === 'paid' || order.payment_status === 'completed' 
-                              ? 'bg-green-100 text-green-800 border-green-200' 
-                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                          }`}>
-                            {order.payment_status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => fetchOrderDetails(order.id)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
+              <div>
+                {/* Card Layout for Mobile */}
+                <div className="grid gap-4 md:hidden">
+                  {orders.map(o => (
+                    <div key={o.id} className="rounded-lg border p-4">
+                      <div className="flex justify-between items-center">
+                        <div className="font-medium">{o.order_number}</div>
+                        <span className={`inline-flex px-2 py-1 text-xs rounded-full border ${getStatusColor(o.status)}`}>
+                          {o.status}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        {o.customer_name} — ₦{Number(o.total_amount).toFixed(2)}
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" aria-label={`View order ${o.order_number}`} onClick={() => fetchOrderDetails(o.id)}>
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Table Layout for Desktop */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order #</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Payment</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {orders.map((order) => (
+                        <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">{order.order_number}</td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <p className="font-medium text-gray-900">{order.customer_name}</p>
+                              <p className="text-sm text-gray-500">{order.customer_email}</p>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">₦{parseFloat(order.total_amount.toString()).toFixed(2)}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                              order.payment_status === 'paid' || order.payment_status === 'completed' 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                            }`}>
+                              {order.payment_status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                aria-label={`View order ${order.order_number}`}
+                                onClick={() => fetchOrderDetails(order.id)}
+                              >
+                                <Eye className="h-4 w-4" aria-hidden="true" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </CardContent>
@@ -292,15 +338,23 @@ export default function OrdersPage() {
 
         {/* Order Details Modal */}
         {showOrderModal && selectedOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-details-title"
+          >
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
+                  <h2 id="order-details-title" className="text-2xl font-bold text-gray-900">
+                    Order Details
+                  </h2>
                   <p className="text-sm text-gray-500">{selectedOrder.order_number}</p>
                 </div>
                 <button
+                  aria-label="Close order details"
                   onClick={() => setShowOrderModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >

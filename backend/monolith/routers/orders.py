@@ -1,7 +1,7 @@
 # file: routers/orders.py
 import uuid
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from decimal import Decimal
 from typing import List, Optional
@@ -25,8 +25,7 @@ def generate_order_number() -> str:
 @router.post("/checkout")
 @checkout_rate_limit()
 def process_checkout(
-    checkout_data: schemas.CheckoutRequest, 
-    background_tasks: BackgroundTasks,
+    checkout_data: schemas.CheckoutRequest,
     db: Session = Depends(get_db)
 ):
     """
@@ -133,8 +132,8 @@ def process_checkout(
         db.commit()
         db.refresh(new_order)
 
-        # 7. Send notification in background
-        background_tasks.add_task(send_order_confirmation, new_order)
+        # 7. Send notification
+        send_order_confirmation(new_order)
 
         return {
             "message": "Order placed successfully!",

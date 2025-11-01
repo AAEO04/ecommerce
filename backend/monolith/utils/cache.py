@@ -52,9 +52,13 @@ def invalidate_cache(product_id: Optional[int] = None):
         else:
             pattern = "product:*"
         
-        keys = redis_client.keys(pattern)
-        if keys:
-            redis_client.delete(*keys)
+        cursor = 0
+        while True:
+            cursor, keys = redis_client.scan(cursor=cursor, match=pattern, count=500)
+            if keys:
+                redis_client.delete(*keys)
+            if cursor == 0:
+                break
     except redis.RedisError:
         pass
 

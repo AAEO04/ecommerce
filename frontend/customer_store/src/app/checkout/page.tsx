@@ -46,7 +46,7 @@ export default function CheckoutPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold mb-4">Checkout</h1>
       {success ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12" aria-live="polite" role="status">
           <h2 className="text-2xl font-bold text-green-600 mb-2">Order Placed Successfully!</h2>
           <p className="text-gray-600">Redirecting to order confirmation...</p>
         </div>

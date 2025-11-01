@@ -83,10 +83,10 @@ services:
       - SMTP_USERNAME=${SMTP_USERNAME:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SENDER_EMAIL=${SENDER_EMAIL:-noreply@madrush.com}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your_jwt_secret_key_here}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-your_encryption_key_here}
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       db:
         condition: service_healthy

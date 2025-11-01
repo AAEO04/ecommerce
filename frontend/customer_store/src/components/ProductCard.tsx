@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { useCartStore } from '@/stores/useCartStore'
+import { formatNGN } from '@/utils/currency'
 
 export type Product = any
 
@@ -20,7 +21,7 @@ export default function ProductCard({ product }: any) {
         <p className="text-sm text-muted-foreground">{product.category}</p>
       </Link>
       <div className="mt-2 flex items-center justify-between">
-        <div className="text-lg font-bold">${variant?.price}</div>
+        <div className="text-lg font-bold">{variant ? formatNGN(Number(variant.price)) : ''}</div>
         <button onClick={handleAdd} className="px-3 py-1 bg-accentRed text-white rounded">Add</button>
       </div>
     </div>
