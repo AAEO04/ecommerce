@@ -5,7 +5,7 @@ interface FeaturedProductsProps {
   products: Product[];
 }
 
-export default function FeaturedProducts({ products }: FeaturedProductsProps) {
+export function FeaturedProducts({ products }: FeaturedProductsProps) {
   return (
     <section className="py-12">
       <div className="max-w-5xl mx-auto px-4">

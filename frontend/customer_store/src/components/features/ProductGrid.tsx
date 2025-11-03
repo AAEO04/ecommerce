@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import ProductCard from '@/components/ProductCard';
+import { ProductCard } from '@/components/ProductCard';
 import type { Product } from '@/lib/api';
 import { cardVariants } from '@/lib/animations';
 

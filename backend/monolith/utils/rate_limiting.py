@@ -6,6 +6,7 @@ from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 import redis
 from config import settings
+from utils import constants
 
 # Redis connection for rate limiting
 try:
@@ -23,7 +24,7 @@ except Exception:
 limiter = Limiter(
     key_func=get_remote_address,
     storage_uri=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB}" if redis_client else "memory://",
-    default_limits=["1000/hour"]  # Default rate limit
+    default_limits=[constants.RATE_LIMIT_API]  # Default rate limit
 )
 
 # Custom rate limit exceeded handler
@@ -44,20 +45,20 @@ def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 # Rate limit decorators for different endpoints
 def auth_rate_limit():
     """Rate limit for authentication endpoints"""
-    return limiter.limit("5/minute")
+    return limiter.limit(constants.RATE_LIMIT_AUTH)
 
 def checkout_rate_limit():
     """Rate limit for checkout endpoint"""
-    return limiter.limit("3/minute")
+    return limiter.limit(constants.RATE_LIMIT_CHECKOUT)
 
 def api_rate_limit():
     """Rate limit for general API endpoints"""
-    return limiter.limit("100/minute")
+    return limiter.limit(constants.RATE_LIMIT_API)
 
 def admin_rate_limit():
     """Rate limit for admin endpoints"""
-    return limiter.limit("200/minute")
+    return limiter.limit(constants.RATE_LIMIT_API)
 
 def upload_rate_limit():
     """Rate limit for file upload endpoints"""
-    return limiter.limit("10/minute")
+    return limiter.limit(constants.RATE_LIMIT_API)

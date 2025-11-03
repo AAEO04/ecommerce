@@ -28,6 +28,7 @@ twilio==9.0.0
 
 # HTTP client (for external APIs)
 httpx==0.28.1
+requests==2.31.0
 
 # Security
 passlib[bcrypt]==1.7.4
@@ -42,3 +43,8 @@ slowapi==0.1.9
 # HTML Sanitization
 bleach==6.1.0
 ruff==0.1.15
+Jinja2==3.1.4
+
+# CSRF Protection
+fastapi-csrf-protect==1.0.7
+pydantic-settings==2.0.3

@@ -5,29 +5,21 @@ import Image from 'next/image';
 import { useCartStore } from '@/stores/useCartStore';
 import { formatNGN } from '@/utils/currency';
 import { Product } from '@/lib/api';
-import { useContext, useEffect, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { useEffect, useRef, useContext } from 'react';
+import { useInViewAnimation } from '@/hooks/useInViewAnimation';
 import { AnimationContext } from '@/context/AnimationContext';
 import toast from 'react-hot-toast';
 
-export default function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const imgRef = useRef<HTMLImageElement>(null);
   const animationContext = useContext(AnimationContext);
-  const controls = useAnimation();
-  const [ref, inView] = useInView({
+  const { ref, controls, inView } = useInViewAnimation({
     triggerOnce: true,
     threshold: 0.1,
   });
-
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible');
-    } else {
-      controls.start('hidden');
-    }
-  }, [controls, inView]);
 
   const handleAdd = () => {
     addItem(product);
@@ -36,43 +28,11 @@ export default function ProductCard({ product }: { product: Product }) {
     if (imgRef.current && animationContext?.cartRef?.current) {
       const imgRect = imgRef.current.getBoundingClientRect();
       const cartRect = animationContext.cartRef.current.getBoundingClientRect();
-
-      const dummyImg = document.createElement('img');
-      dummyImg.src = product.images[0].image_url;
-      dummyImg.style.position = 'fixed';
-      dummyImg.style.left = `${imgRect.left}px`;
-      dummyImg.style.top = `${imgRect.top}px`;
-      dummyImg.style.width = `${imgRect.width}px`;
-      dummyImg.style.height = `${imgRect.height}px`;
-      dummyImg.style.zIndex = '1000';
-      document.body.appendChild(dummyImg);
-
-      const animation = dummyImg.animate(
-        [
-          {
-            left: `${imgRect.left}px`,
-            top: `${imgRect.top}px`,
-            width: `${imgRect.width}px`,
-            height: `${imgRect.height}px`,
-            opacity: 1,
-          },
-          {
-            left: `${cartRect.left + cartRect.width / 2}px`,
-            top: `${cartRect.top + cartRect.height / 2}px`,
-            width: '0px',
-            height: '0px',
-            opacity: 0.5,
-          },
-        ],
-        {
-          duration: 800,
-          easing: 'ease-in-out',
-        }
-      );
-
-      animation.onfinish = () => {
-        document.body.removeChild(dummyImg);
-      };
+      animationContext.triggerAnimation({
+        startRect: imgRect,
+        endRect: cartRect,
+        src: product.images[0].image_url,
+      });
     }
   };
 

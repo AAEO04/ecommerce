@@ -15,6 +15,4 @@ export * from './features'
 export * from './common'
 
 // Individual Components
-export { default as Categories } from './Categories'
-export { default as ProductCard } from './ProductCard'
-export type { Product } from './ProductCard'
+export { Categories } from './Categories'

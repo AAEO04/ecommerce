@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const res = await fetch(`${process.env.API_BASE}/api/products`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
     next: { revalidate: 60 }
   })
   

@@ -29,23 +29,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if admin is authenticated via API
+    let isMounted = true
+    
     const checkAuth = async () => {
       try {
         const isAuth = await adminApi.isAuthenticated()
+        if (!isMounted) return // Prevent state update on unmounted component
+        
         setIsAuthenticated(isAuth)
         if (!isAuth) {
           router.push('/admin/login')
         }
       } catch (error) {
+        if (!isMounted) return
         console.error('Auth check failed:', error)
         router.push('/admin/login')
       } finally {
-        setIsLoading(false)
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
     
     checkAuth()
+    
+    return () => {
+      isMounted = false
+    }
   }, [router])
 
   const handleLogout = async () => {
@@ -118,8 +128,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             size="sm"
             className="lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close sidebar"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Close sidebar</span>
           </Button>
         </div>
 
@@ -164,8 +176,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               size="sm"
               className="lg:hidden"
               onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open sidebar"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-5 w-5" aria-hidden="true" />
+              <span className="sr-only">Open sidebar</span>
             </Button>
 
             <div className="flex items-center space-x-4">

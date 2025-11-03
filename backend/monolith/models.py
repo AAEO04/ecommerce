@@ -3,15 +3,15 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey, Numeric, DateT
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
-from utils.constants import ADMIN_ROLE
+from utils.constants import ADMIN_ROLE, PRODUCT_NAME_MAX_LENGTH, CATEGORY_NAME_MAX_LENGTH, VARIANT_SIZE_MAX_LENGTH, VARIANT_COLOR_MAX_LENGTH, VARIANT_SKU_MAX_LENGTH, IMAGE_URL_MAX_LENGTH, IMAGE_ALT_TEXT_MAX_LENGTH, ORDER_NUMBER_MAX_LENGTH, ORDER_STATUS_MAX_LENGTH, PAYMENT_STATUS_MAX_LENGTH, PAYMENT_REFERENCE_MAX_LENGTH, CUSTOMER_EMAIL_MAX_LENGTH, CUSTOMER_PHONE_MAX_LENGTH, USERNAME_MAX_LENGTH, PASSWORD_HASH_MAX_LENGTH, ROLE_MAX_LENGTH, IDEMPOTENCY_KEY_MAX_LENGTH, PAYMENT_METHOD_MAX_LENGTH, NAME_MAX_LENGTH
 
 class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False, index=True)
+    name = Column(String(PRODUCT_NAME_MAX_LENGTH), nullable=False, index=True)
     description = Column(Text)
-    category = Column(String(100), ForeignKey("categories.slug"), index=True)
+    category = Column(String(CATEGORY_NAME_MAX_LENGTH), ForeignKey("categories.slug"), index=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -23,11 +23,11 @@ class ProductVariant(Base):
     __tablename__ = "productvariants"
 
     id = Column(Integer, primary_key=True, index=True)
-    size = Column(String(50), nullable=False)
-    color = Column(String(50))
+    size = Column(String(VARIANT_SIZE_MAX_LENGTH), nullable=False)
+    color = Column(String(VARIANT_COLOR_MAX_LENGTH))
     stock_quantity = Column(Integer, nullable=False, default=0)
     price = Column(Numeric(10, 2), nullable=False)
-    sku = Column(String(100), unique=True, index=True)
+    sku = Column(String(VARIANT_SKU_MAX_LENGTH), unique=True, index=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
@@ -38,8 +38,8 @@ class ProductImage(Base):
     __tablename__ = "productimages"
 
     id = Column(Integer, primary_key=True, index=True)
-    image_url = Column(String(500), nullable=False)
-    alt_text = Column(String(255))
+    image_url = Column(String(IMAGE_URL_MAX_LENGTH), nullable=False)
+    alt_text = Column(String(IMAGE_ALT_TEXT_MAX_LENGTH))
     display_order = Column(Integer, default=0)
     is_primary = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -51,15 +51,14 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    order_number = Column(String(50), unique=True, index=True)
-    idempotency_key = Column(String(255), unique=True, nullable=True, index=True)
-    status = Column(String(50), default="pending")
-    payment_status = Column(String(50), default="pending")
-    payment_method = Column(String(50))
-    payment_reference = Column(String(100))
-    customer_name = Column(String(255), nullable=False)
-    customer_email = Column(String(255), nullable=False)
-    customer_phone = Column(String(50), nullable=False)
+    order_number = Column(String(ORDER_NUMBER_MAX_LENGTH), unique=True, index=True)
+    idempotency_key = Column(String(IDEMPOTENCY_KEY_MAX_LENGTH), unique=True, nullable=True, index=True)
+    status = Column(String(ORDER_STATUS_MAX_LENGTH), default="pending")
+    payment_status = Column(String(PAYMENT_STATUS_MAX_LENGTH), default="pending")
+    payment_method = Column(String(PAYMENT_METHOD_MAX_LENGTH))
+    payment_reference = Column(String(PAYMENT_REFERENCE_MAX_LENGTH))
+    customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
+    customer = relationship("Customer")
     shipping_address = Column(Text, nullable=False)
     billing_address = Column(Text)
     total_amount = Column(Numeric(10, 2), nullable=False)
@@ -90,8 +89,8 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False, unique=True)
-    slug = Column(String(100), nullable=False, unique=True, index=True)
+    name = Column(String(CATEGORY_NAME_MAX_LENGTH), nullable=False, unique=True)
+    slug = Column(String(CATEGORY_NAME_MAX_LENGTH), nullable=False, unique=True, index=True)
     description = Column(Text)
     parent_id = Column(Integer, ForeignKey("categories.id"))
     is_active = Column(Boolean, default=True)
@@ -104,10 +103,10 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), unique=True, index=True)
-    phone = Column(String(50))
-    first_name = Column(String(100))
-    last_name = Column(String(100))
+    email = Column(String(CUSTOMER_EMAIL_MAX_LENGTH), unique=True, index=True)
+    phone = Column(String(CUSTOMER_PHONE_MAX_LENGTH))
+    first_name = Column(String(NAME_MAX_LENGTH))
+    last_name = Column(String(NAME_MAX_LENGTH))
     date_of_birth = Column(DateTime)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -118,9 +117,9 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, nullable=False, index=True)
-    hashed_password = Column(String(255), nullable=False)
-    role = Column(String(50), default=ADMIN_ROLE, nullable=False)
+    username = Column(String(USERNAME_MAX_LENGTH), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(PASSWORD_HASH_MAX_LENGTH), nullable=False)
+    role = Column(String(ROLE_MAX_LENGTH), default=ADMIN_ROLE, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

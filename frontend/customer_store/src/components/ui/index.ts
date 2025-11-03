@@ -8,7 +8,6 @@
 // Basic UI Components (only export existing modules)
 export { Button } from './button'
 export { Icon } from './Icon'
-export { default as ProductCard } from '../ProductCard'
-export type { Product } from '../ProductCard'
-export { GridSkeleton, Skeleton } from './skeleton'
-export { default as Cart } from './Cart'
+export { ProductCard } from '../ProductCard'
+export { Skeleton } from './skeleton'
+export { Cart } from './Cart'

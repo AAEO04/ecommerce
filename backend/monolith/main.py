@@ -1,6 +1,8 @@
 # file: main.py
+import logging
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -28,8 +30,11 @@ app.add_middleware(
     allow_origins=settings.CORS_ORIGINS,  # Only allow configured origins
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+# GZip middleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):
@@ -73,7 +78,8 @@ def health_check():
         db.close()
         status["services"]["database"] = "connected"
     except Exception as e:
-        status["services"]["database"] = f"error: {str(e)}"
+        logging.error(f"Health check: Database connection failed: {e}")
+        status["services"]["database"] = "error"
         status["status"] = "unhealthy"
     
     # Check Redis (optional)
@@ -82,7 +88,8 @@ def health_check():
             redis_client.ping()
             status["services"]["redis"] = "connected"
         except Exception as e:
-            status["services"]["redis"] = f"error: {str(e)}"
+            logging.error(f"Health check: Redis connection failed: {e}")
+            status["services"]["redis"] = "error"
     else:
         status["services"]["redis"] = "not configured"
     

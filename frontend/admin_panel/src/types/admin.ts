@@ -36,9 +36,54 @@ export interface ApiResponse<T> {
   data?: T
   error?: string
   message?: string
+  isAuthError?: boolean
 }
 
 export interface AdminApiConfig {
   adminApiUrl: string
   productApiUrl: string
+}
+
+import type { OrderStatus, PaymentStatus } from '../lib/constants'
+
+export interface Order {
+  id: number
+  order_number: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string
+  shipping_address: string
+  total_amount: number | string
+  status: OrderStatus
+  payment_status: PaymentStatus
+  payment_method: string
+  created_at: string
+  notes?: string
+  items?: OrderItem[]
+}
+
+export interface OrderItem {
+  id: number
+  quantity: number
+  unit_price: number | string
+  total_price: number | string
+  variant: ProductVariant
+}
+
+export interface ProductVariant {
+  id: number
+  size: string
+  color: string | null
+  product: {
+    id: number
+    name: string
+  }
+}
+
+export interface OrderFilters {
+  status?: string
+  paymentStatus?: string
+  search?: string
+  page?: number
+  limit?: number
 }

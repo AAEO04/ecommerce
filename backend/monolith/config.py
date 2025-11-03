@@ -18,7 +18,7 @@ class Settings:
     RABBITMQ_HOST: str = os.getenv("RABBITMQ_HOST", "localhost")
     RABBITMQ_PORT: int = int(os.getenv("RABBITMQ_PORT", "5672"))
     RABBITMQ_USER: str = os.getenv("RABBITMQ_USER", "madrush")
-    RABBITMQ_PASSWORD: str = os.getenv("RABBITMQ_PASSWORD", "guest")
+    RABBITMQ_PASSWORD: str = os.getenv("RABBITMQ_PASSWORD")
     
     # Payment (Paystack) - REQUIRED for production
     PAYSTACK_SECRET_KEY: str = os.getenv("PAYSTACK_SECRET_KEY", "")
@@ -40,6 +40,8 @@ class Settings:
     
     # JWT Secret - REQUIRED
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
+    if not JWT_SECRET_KEY:
+        raise ValueError("FATAL: JWT_SECRET_KEY environment variable is not set.")
     
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))

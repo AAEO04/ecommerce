@@ -1,9 +1,9 @@
-# file: utils/payment.py
 import requests
 import json
 from decimal import Decimal
 from typing import Dict, Any, Optional
 from config import settings
+from utils import constants
 
 class PaystackClient:
     """Paystack payment gateway client"""
@@ -54,7 +54,7 @@ class PaystackClient:
         Returns:
             Dict containing payment initialization response
         """
-        amount_kobo = int(amount * 100)  # Convert to kobo
+        amount_kobo = int(amount * constants.PAYSTACK_KOBO_MULTIPLIER)  # Convert to kobo
 
         payload = {
             "amount": amount_kobo,
@@ -159,7 +159,7 @@ class PaystackClient:
         Returns:
             Dict containing transfer details
         """
-        amount_kobo = int(amount * 100)
+        amount_kobo = int(amount * constants.PAYSTACK_KOBO_MULTIPLIER)
 
         payload = {
             "amount": amount_kobo,
@@ -198,7 +198,7 @@ def process_payment(amount: Decimal, email: str, reference: str,
             return {
                 "status": "success",
                 "reference": reference,
-                "amount": float(amount) * 100,  # Paystack uses kobo
+                "amount": float(amount) * constants.PAYSTACK_KOBO_MULTIPLIER,  # Paystack uses kobo
                 "message": "Payment processed successfully (mock mode)",
                 "authorization_url": f"https://checkout.paystack.com/{reference}",
                 "access_code": f"access_{reference}"
@@ -220,7 +220,7 @@ def process_payment(amount: Decimal, email: str, reference: str,
             return {
                 "status": "success",
                 "reference": reference,
-                "amount": int(amount * 100),
+                "amount": int(amount * constants.PAYSTACK_KOBO_MULTIPLIER),
                 "authorization_url": data.get("authorization_url"),
                 "access_code": data.get("access_code"),
                 "message": "Payment initialized successfully"
@@ -256,7 +256,7 @@ def verify_payment(reference: str) -> dict:
                 "status": "success",
                 "verified": True,
                 "message": "Payment verification (mock mode)",
-                "amount": 100000,  # Mock amount in kobo
+                "amount": constants.PAYSTACK_MIN_AMOUNT,  # Mock amount in kobo
                 "currency": "NGN",
                 "payment_date": "2024-01-01T00:00:00.000000Z",
                 "channel": "card"

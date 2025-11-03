@@ -4,6 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 from decimal import Decimal
 from utils.validation import SecureValidators
+from utils import constants
 
 # --- Product Schemas ---
 
@@ -137,14 +138,14 @@ class OrderItemCreate(BaseModel):
 
 class CheckoutRequest(BaseModel):
     cart: List[OrderItemCreate]
-    customer_name: str = Field(..., min_length=1, max_length=255)
+    customer_name: str = Field(..., min_length=constants.NAME_MIN_LENGTH, max_length=constants.NAME_MAX_LENGTH)
     customer_email: EmailStr
-    customer_phone: str = Field(..., min_length=7, max_length=20)
-    shipping_address: str = Field(..., min_length=10, max_length=1000)
-    billing_address: Optional[str] = Field(None, max_length=1000)
-    payment_method: str = Field("card", max_length=50)
-    notes: Optional[str] = Field(None, max_length=1000)
-    idempotency_key: str = Field(..., min_length=1, max_length=255)
+    customer_phone: str = Field(..., min_length=constants.PHONE_MIN_LENGTH, max_length=constants.PHONE_MAX_LENGTH)
+    shipping_address: str = Field(..., min_length=constants.ADDRESS_MIN_LENGTH, max_length=constants.ADDRESS_MAX_LENGTH)
+    billing_address: Optional[str] = Field(None, max_length=constants.ADDRESS_MAX_LENGTH)
+    payment_method: str = Field("card", max_length=constants.PAYMENT_METHOD_MAX_LENGTH)
+    notes: Optional[str] = Field(None, max_length=constants.NOTES_MAX_LENGTH)
+    idempotency_key: str = Field(..., min_length=constants.IDEMPOTENCY_KEY_MIN_LENGTH, max_length=constants.IDEMPOTENCY_KEY_MAX_LENGTH)
 
     @validator('cart')
     def cart_must_not_be_empty(cls, v):
@@ -154,7 +155,7 @@ class CheckoutRequest(BaseModel):
     
     @validator('customer_name')
     def validate_customer_name(cls, v):
-        return SecureValidators.validate_string_length(v, 1, 255)
+        return SecureValidators.validate_string_length(v, constants.NAME_MIN_LENGTH, constants.NAME_MAX_LENGTH)
     
     @validator('customer_phone')
     def validate_customer_phone(cls, v):
@@ -162,18 +163,18 @@ class CheckoutRequest(BaseModel):
     
     @validator('shipping_address')
     def validate_shipping_address(cls, v):
-        return SecureValidators.validate_string_length(v, 10, 1000)
+        return SecureValidators.validate_string_length(v, constants.ADDRESS_MIN_LENGTH, constants.ADDRESS_MAX_LENGTH)
     
     @validator('billing_address')
     def validate_billing_address(cls, v):
         if v:
-            return SecureValidators.validate_string_length(v, 10, 1000)
+            return SecureValidators.validate_string_length(v, constants.ADDRESS_MIN_LENGTH, constants.ADDRESS_MAX_LENGTH)
         return v
     
     @validator('notes')
     def validate_notes(cls, v):
         if v:
-            return SecureValidators.validate_string_length(v, 1, 1000)
+            return SecureValidators.validate_string_length(v, constants.NOTES_MIN_LENGTH, constants.NOTES_MAX_LENGTH)
         return v
 
 class PaymentRequest(BaseModel):

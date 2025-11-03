@@ -9,10 +9,13 @@ import models
 import schemas
 from database import get_db
 from utils.cache import get_cache_key, get_from_cache, set_cache, invalidate_cache
+from utils.cache_decorator import cached
+from utils import constants
 
 router = APIRouter()
 
 @router.get("/", response_model=List[schemas.ProductResponse])
+@cached("products", expire=constants.CACHE_PRODUCT_TTL)
 def read_products(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -24,23 +27,6 @@ def read_products(
     db: Session = Depends(get_db)
 ):
     """Get products with filtering, search, and pagination"""
-    
-    # Generate cache key
-    cache_key = get_cache_key(
-        "products",
-        skip=skip,
-        limit=limit,
-        category=category or "all",
-        search=search or "none",
-        min_price=str(min_price) if min_price else "none",
-        max_price=str(max_price) if max_price else "none",
-        in_stock_only=in_stock_only
-    )
-    
-    # Try cache first
-    cached_data = get_from_cache(cache_key)
-    if cached_data:
-        return cached_data
     
     # Build query
     query = db.query(models.Product).options(
@@ -75,21 +61,12 @@ def read_products(
         query = query.distinct()
     
     products = query.offset(skip).limit(limit).all()
-    result = [schemas.ProductResponse.from_orm(product) for product in products]
-    
-    # Cache result
-    set_cache(cache_key, [product.dict() for product in result])
-    
     return result
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
+@cached("product", expire=constants.CACHE_PRODUCT_TTL, key_builder=lambda product_id, **kwargs: f"product:{product_id}")
 def read_product(product_id: int, db: Session = Depends(get_db)):
     """Get a specific product by ID"""
-    
-    cache_key = get_cache_key("product", product_id=product_id)
-    cached_data = get_from_cache(cache_key)
-    if cached_data:
-        return cached_data
     
     db_product = db.query(models.Product).options(
         joinedload(models.Product.variants),
@@ -101,9 +78,6 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
     
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    
-    result = schemas.ProductResponse.from_orm(db_product)
-    set_cache(cache_key, result.dict(), expire=3600)
     
     return result
 

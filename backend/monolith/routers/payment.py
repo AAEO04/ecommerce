@@ -1,15 +1,19 @@
-from fastapi import APIRouter, Request, HTTPException, Header
+from fastapi import APIRouter, Request, HTTPException, Header, Depends
 from starlette.responses import JSONResponse
 import hmac
 import hashlib
 import json
 from config import settings
 from utils.payment import verify_payment
+from sqlalchemy.orm import Session
+from database import get_db
+import models
+import logging
 
 router = APIRouter()
 
 @router.post("/webhook/paystack")
-async def paystack_webhook(request: Request, x_paystack_signature: str = Header(None)):
+async def paystack_webhook(request: Request, x_paystack_signature: str = Header(None), db: Session = Depends(get_db)):
     """
     Handles incoming Paystack webhook events.
     Verifies the signature to ensure the request is from Paystack.
@@ -19,10 +23,6 @@ async def paystack_webhook(request: Request, x_paystack_signature: str = Header(
 
     payload = await request.body()
     
-    # Verify webhook signature
-    # Paystack sends the raw request body, so we need to hash that
-    # and compare it with the signature in the header.
-    # The secret key is used to sign the payload.
     try:
         hash_value = hmac.new(
             settings.PAYSTACK_SECRET_KEY.encode('utf-8'),
@@ -32,28 +32,31 @@ async def paystack_webhook(request: Request, x_paystack_signature: str = Header(
         if hash_value != x_paystack_signature:
             raise HTTPException(status_code=400, detail="Invalid Paystack signature")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Webhook signature verification failed: {e}")
+        logging.error(f"Webhook signature verification failed: {e}")
+        raise HTTPException(status_code=400, detail="Webhook signature verification failed")
 
     event = json.loads(payload.decode('utf-8'))
     
-    # Process the event
     if event['event'] == 'charge.success':
         reference = event['data']['reference']
-        # Here, you would typically update your order status in the database
-        # and handle idempotency.
-        # For now, we'll just verify the payment.
+        
+        order = db.query(models.Order).filter(models.Order.payment_reference == reference).first()
+
+        if not order:
+            logging.error(f"Webhook received for unknown payment reference: {reference}")
+            return JSONResponse(status_code=404, content={"message": "Order not found"})
+
+        if order.payment_status == 'paid':
+            logging.info(f"Webhook for already processed payment reference: {reference}")
+            return JSONResponse(status_code=200, content={"message": "Webhook already processed"})
+
         verification_result = verify_payment(reference)
         if verification_result.get("verified"):
-            print(f"Payment for reference {reference} successfully verified and processed.")
-            # TODO: Implement idempotency check:
-            # 1. Query your database for an order or payment record using the 'reference'.
-            # 2. If a record exists and is already marked as 'successful', ignore this webhook to prevent double processing.
-            # 3. If the record exists but is pending, update its status to 'successful'.
-            # 4. If no record exists (e.g., due to a race condition or out-of-order events), you might need to create one or log for manual review.
-            # 5. Ensure all database operations are atomic.
-            # Example: update_order_status(reference, 'completed')
+            order.payment_status = 'paid'
+            order.status = 'confirmed'
+            db.commit()
+            logging.info(f"Payment for reference {reference} successfully verified and processed.")
         else:
-            print(f"Payment verification failed for reference {reference}: {verification_result.get('message')}")
-            # TODO: Log this failure and potentially trigger a manual review
-    
+            logging.error(f"Payment verification failed for reference {reference}: {verification_result.get('message')}")
+            
     return JSONResponse(status_code=200, content={"message": "Webhook received"})

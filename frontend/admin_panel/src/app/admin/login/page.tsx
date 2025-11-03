@@ -39,7 +39,7 @@ export default function AdminLogin() {
         router.push('/admin')
       } else {
         const errorData = await response.json()
-        setError(errorData.message || 'Invalid credentials. Please try again.')
+        setError(errorData.detail || 'Invalid credentials. Please try again.')
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -110,12 +110,14 @@ export default function AdminLogin() {
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className="h-4 w-4" aria-hidden="true" />
                     ) : (
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-4 w-4" aria-hidden="true" />
                     )}
+                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
                   </Button>
                 </div>
               </div>

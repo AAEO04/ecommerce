@@ -21,12 +21,12 @@ Set the `DATABASE_URL` environment variable:
 
 **Windows PowerShell:**
 ```powershell
-$env:DATABASE_URL="postgresql://madrush_user:madrush_password@localhost:5432/madrush_db"
+$env:DATABASE_URL="postgresql://<YOUR_USERNAME>:<YOUR_PASSWORD>@localhost:5432/madrush_db"
 ```
 
 **Linux/Mac:**
 ```bash
-export DATABASE_URL="postgresql://madrush_user:madrush_password@localhost:5432/madrush_db"
+export DATABASE_URL="postgresql://<YOUR_USERNAME>:<YOUR_PASSWORD>@localhost:5432/madrush_db"
 ```
 
 Or create a `.env` file with your configuration (see `.env.example` in the root directory).

@@ -7,13 +7,8 @@ export default function Home() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect to admin dashboard if authenticated, otherwise to login
-    const token = localStorage.getItem('admin_token')
-    if (token) {
-      router.push('/admin')
-    } else {
-      router.push('/admin/login')
-    }
+    // Simply redirect to admin - let the layout handle auth
+    router.push('/admin')
   }, [router])
 
   return (

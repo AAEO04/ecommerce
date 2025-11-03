@@ -12,7 +12,7 @@ const categories = [
   { name: 'New Drops', icon: <Zap /> },
 ]
 
-export default function Categories() {
+export function Categories() {
   return (
     <section className="py-12">
       <div className="max-w-5xl mx-auto px-4">

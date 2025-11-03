@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session, joinedload
 from decimal import Decimal
 from typing import List, Optional
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import case
+from sqlalchemy.orm import selectinload
 
 import models
 import schemas
@@ -14,6 +17,7 @@ from utils import auth
 from utils.notifications import send_order_confirmation
 from utils.rate_limiting import checkout_rate_limit
 from utils.error_handling import SecureErrorHandler
+from utils.exceptions import ProductNotFoundException, InsufficientStockException, PaymentFailedException
 
 router = APIRouter()
 
@@ -34,14 +38,15 @@ def process_checkout(
     Process a customer's checkout request with payment integration.
     """
     try:
-        # Check for existing order with idempotency key
+        # Check for existing order with row lock
         if checkout_data.idempotency_key:
             existing_order = db.query(models.Order).filter(
                 models.Order.idempotency_key == checkout_data.idempotency_key
-            ).first()
+            ).with_for_update(skip_locked=True).first()
+
             if existing_order:
                 return {
-                    "message": "Order already processed!",
+                    "message": "Order already processed",
                     "order_id": existing_order.id,
                     "order_number": existing_order.order_number,
                     "payment_reference": existing_order.payment_reference,
@@ -63,9 +68,10 @@ def process_checkout(
                 models.ProductVariant.id == item.variant_id,
                 models.ProductVariant.is_active == True,
                 models.ProductVariant.stock_quantity >= item.quantity
-            ).update({
-                "stock_quantity": models.ProductVariant.stock_quantity - item.quantity
-            })
+            ).update(
+                {"stock_quantity": models.ProductVariant.stock_quantity - item.quantity},
+                synchronize_session='fetch'
+            )
             
             if updated_rows == 0:
                 # Check if variant exists
@@ -75,14 +81,12 @@ def process_checkout(
                 ).first()
                 
                 if not variant:
-                    raise HTTPException(
-                        status_code=400, 
-                        detail=f"Product variant ID {item.variant_id} not found"
-                    )
+                    raise ProductNotFoundException(product_id=item.variant_id)
                 else:
-                    raise HTTPException(
-                        status_code=400, 
-                        detail=f"Insufficient stock for variant {variant.size} {variant.color or ''}. Available: {variant.stock_quantity}, Requested: {item.quantity}"
+                    raise InsufficientStockException(
+                        variant_id=variant.id,
+                        available=variant.stock_quantity,
+                        requested=item.quantity
                     )
             
             # Get the updated variant
@@ -110,10 +114,7 @@ def process_checkout(
         )
         
         if payment_result["status"] != "success":
-            raise HTTPException(
-                status_code=400,
-                detail=f"Payment failed: {payment_result.get('message', 'Unknown error')}"
-            )
+            raise PaymentFailedException(reason=payment_result.get('message', 'Unknown error'))
 
         # 3. Create the main Order record
         new_order = models.Order(
@@ -162,7 +163,26 @@ def process_checkout(
             "status": "confirmed"
         }
         
+    except IntegrityError as e:
+        db.rollback()
+        # Another request created the order concurrently
+        existing_order = db.query(models.Order).filter(
+            models.Order.idempotency_key == checkout_data.idempotency_key
+        ).first()
+
+        if existing_order:
+            return {
+                "message": "Order already processed",
+                "order_id": existing_order.id,
+                "order_number": existing_order.order_number,
+                "payment_reference": existing_order.payment_reference,
+                "total_amount": float(existing_order.total_amount),
+                "status": existing_order.status
+            }
+        raise HTTPException(status_code=500, detail="Order creation failed")
+
     except HTTPException:
+        db.rollback()
         raise
     except Exception as e:
         db.rollback()
@@ -177,7 +197,7 @@ def get_order(order_id: int, db: Session = Depends(get_db), current_admin: dict 
     ).filter(models.Order.id == order_id).first()
     
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise ProductNotFoundException(product_id=order_id)
     
     return schemas.OrderResponse.from_orm(order)
 
@@ -193,7 +213,9 @@ def list_orders(
     """List orders with optional filtering"""
     
     query = db.query(models.Order).options(
-        joinedload(models.Order.items).joinedload(models.OrderItem.variant)
+        selectinload(models.Order.items)
+        .selectinload(models.OrderItem.variant)
+        .selectinload(models.ProductVariant.product)
     )
     
     if customer_email:
@@ -206,23 +228,23 @@ def list_orders(
     return [schemas.OrderResponse.from_orm(order) for order in orders]
 
 @router.get("/by-number/{order_number}", response_model=schemas.OrderResponse)
-def get_order_by_number(order_number: str, db: Session = Depends(get_db)):
+def get_order_by_number(order_number: str, db: Session = Depends(get_db), current_admin: dict = Depends(auth.get_current_admin_from_cookie)):
     """Get order details by order number"""
-    
+
     order = db.query(models.Order).options(
         joinedload(models.Order.items).joinedload(models.OrderItem.variant)
     ).filter(models.Order.order_number == order_number).first()
-    
+
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    
+        raise ProductNotFoundException(product_id=order_number)    
     return schemas.OrderResponse.from_orm(order)
 
 @router.post("/{order_id}/refund")
 def process_refund(
     order_id: int,
     refund_amount: Optional[Decimal] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie)
 ):
     """Process a refund for an order"""
     
@@ -231,17 +253,17 @@ def process_refund(
     ).filter(models.Order.id == order_id).first()
     
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise ProductNotFoundException(product_id=order_id)
     
     if order.payment_status != "paid":
-        raise HTTPException(status_code=400, detail="Cannot refund unpaid order")
+        raise PaymentFailedException(reason="Cannot refund unpaid order")
     
     # Calculate refund amount (full refund if not specified)
     if refund_amount is None:
         refund_amount = order.total_amount
     
     if refund_amount > order.total_amount:
-        raise HTTPException(status_code=400, detail="Refund amount cannot exceed order total")
+        raise PaymentFailedException(reason="Refund amount cannot exceed order total")
     
     # Process refund (mock implementation)
     refund_reference = f"refund_{str(uuid.uuid4()).replace('-', '')}"
@@ -250,13 +272,22 @@ def process_refund(
     order.payment_status = "refunded"
     order.status = "cancelled"
     
-    # Restore stock quantities
-    for item in order.items:
-        variant = db.query(models.ProductVariant).filter(
-            models.ProductVariant.id == item.variant_id
-        ).first()
-        if variant:
-            variant.stock_quantity += item.quantity
+    # Restore stock quantities atomically
+    stock_updates = {item.variant_id: item.quantity for item in order.items}
+
+    if stock_updates: # Only update if there are items to update
+        db.query(models.ProductVariant).filter(
+            models.ProductVariant.id.in_(stock_updates.keys())
+        ).update(
+            {
+                "stock_quantity": models.ProductVariant.stock_quantity +
+                case(
+                    stock_updates,
+                    value=models.ProductVariant.id
+                )
+            },
+            synchronize_session='fetch'
+        )
     
     db.commit()
     

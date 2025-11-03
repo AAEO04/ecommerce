@@ -17,7 +17,11 @@ const config = {
         "2xl": "1400px",
       },
     },
-    extend: {},
+    extend: {
+      colors: {
+        accent: "#3b82f6", // A placeholder blue color
+      },
+    },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config

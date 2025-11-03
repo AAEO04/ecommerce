@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Play } from 'lucide-react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import GlitchText from './GlitchText'
+import { GlitchText } from './GlitchText'
 import { useRef } from 'react'
 
 export function Hero() {

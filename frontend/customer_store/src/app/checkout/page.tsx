@@ -1,10 +1,11 @@
 "use client"
 import { useState } from 'react'
 import { useCartStore } from '@/stores/useCartStore'
-import { checkout } from '@/lib/api'
+import { checkout, CheckoutPayload } from '@/lib/api'
 import { launchSuccessConfetti } from '@/utils/confetti'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function CheckoutPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit(e: any) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     if (isSubmitting) return
@@ -42,7 +43,7 @@ export default function CheckoutPage() {
     setLoading(true)
     setIsSubmitting(true)
 
-    const payload = {
+    const payload: CheckoutPayload = {
       cart: items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
       customer_name: name,
       customer_email: email,
@@ -85,53 +86,79 @@ import toast from 'react-hot-toast';
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
-          <input 
-            required 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-            placeholder="Full name" 
-            className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.name ? 'border-red-500' : ''}`} 
-            aria-invalid={!!errors.name}
-            aria-describedby={errors.name ? 'name-error' : undefined}
-          />
-          {errors.name && <p id="name-error" className="text-red-500 text-sm mt-1">{errors.name}</p>}
-          <input 
-            required 
-            type="email"
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="Email" 
-            className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.email ? 'border-red-500' : ''}`} 
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-          />
-          {errors.email && <p id="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>}
-          <input 
-            required 
-            value={phone} 
-            onChange={(e) => setPhone(e.target.value)} 
-            placeholder="Phone" 
-            className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.phone ? 'border-red-500' : ''}`} 
-            aria-invalid={!!errors.phone}
-            aria-describedby={errors.phone ? 'phone-error' : undefined}
-          />
-          {errors.phone && <p id="phone-error" className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-          <textarea 
-            required 
-            value={address} 
-            onChange={(e) => setAddress(e.target.value)} 
-            placeholder="Shipping address" 
-            rows={4}
-            className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.address ? 'border-red-500' : ''}`} 
-            aria-invalid={!!errors.address}
-            aria-describedby={errors.address ? 'address-error' : undefined}
-          />
-          {errors.address && <p id="address-error" className="text-red-500 text-sm mt-1">{errors.address}</p>}
-
           <div>
-
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+            <input 
+              id="name"
+              required 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              placeholder="Full name" 
+              className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.name ? 'border-red-500' : ''}`} 
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? 'name-error' : undefined}
+            />
+            {errors.name && <p id="name-error" className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
-        </form>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input 
+              id="email"
+              required 
+              type="email"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="Email" 
+              className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.email ? 'border-red-500' : ''}`} 
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+            />
+            {errors.email && <p id="email-error" className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+          <div>
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input 
+              id="phone"
+              required 
+              value={phone} 
+              onChange={(e) => setPhone(e.target.value)} 
+              placeholder="Phone" 
+              className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.phone ? 'border-red-500' : ''}`} 
+              aria-invalid={!!errors.phone}
+              aria-describedby={errors.phone ? 'phone-error' : undefined}
+            />
+            {errors.phone && <p id="phone-error" className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
+          <div>
+            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Shipping address</label>
+            <textarea 
+              id="address"
+              required 
+              value={address} 
+              onChange={(e) => setAddress(e.target.value)} 
+              placeholder="Shipping address" 
+              rows={4}
+              className={`w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-accent focus:border-accent ${errors.address ? 'border-red-500' : ''}`} 
+              aria-invalid={!!errors.address}
+              aria-describedby={errors.address ? 'address-error' : undefined}
+            />
+            {errors.address && <p id="address-error" className="text-red-500 text-sm mt-1">{errors.address}</p>}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full px-6 py-3 bg-accent-green text-white rounded-lg font-semibold hover:bg-accent-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Processing...
+              </span>
+            ) : (
+              'Place Order'
+            )}
+          </button>        </form>
       )}
     </div>
   )

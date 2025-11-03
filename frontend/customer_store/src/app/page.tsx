@@ -1,7 +1,7 @@
 import { Hero } from '@/components/features/Hero'
-import FeaturedProducts from '@/components/features/FeaturedProducts'
-import Categories from '@/components/Categories'
-import Newsletter from '@/components/Newsletter'
+import { FeaturedProducts } from '@/components/features/FeaturedProducts'
+import { Categories } from '@/components/Categories'
+import { Newsletter } from '@/components/Newsletter'
 import { fetchProducts } from '@/lib/api'
 
 export default async function Home() {

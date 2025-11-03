@@ -2,14 +2,50 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from config import settings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, Dict, Any
+import os
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+# Get the directory of the current file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to the templates directory
+template_dir = os.path.join(current_dir)
+
+env = Environment(
+    loader=FileSystemLoader(template_dir),
+    autoescape=select_autoescape(['html', 'xml'])
+)
 
 if TYPE_CHECKING:
     import models
 
-def send_email(to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
-    """Send email notification"""
+def send_email(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    text_content: Optional[str] = None,
+    attachments: Optional[Dict[str, bytes]] = None
+) -> bool:
+    """
+    Send email notification via SMTP
+
+    Args:
+        to_email: Recipient email address
+        subject: Email subject line
+        html_content: HTML body content
+        text_content: Plain text fallback
+        attachments: Dict mapping filename to file bytes
+
+    Returns:
+        True if email sent successfully, False otherwise
+
+    Raises:
+        ValueError: If to_email is invalid
+        SMTPException: If SMTP server error occurs
+    """
     if settings.NOTIFICATION_MOCK:
         print(f"Email notification (mock): {to_email} - {subject}")
         return True
@@ -30,6 +66,14 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
 
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
+
+        if attachments:
+            for filename, file_bytes in attachments.items():
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(file_bytes)
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
+                msg.attach(part)
 
         server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
         server.starttls()
@@ -70,122 +114,51 @@ def send_sms(to_phone: str, message: str) -> bool:
         print(f"Failed to send SMS to {to_phone}: {e}")
         return False
 
-def generate_order_confirmation_email(order) -> tuple:
-    """Generate order confirmation email content"""
+def generate_order_confirmation_email(order: 'models.Order') -> tuple:
+    """Generate order confirmation email content using Jinja2 template"""
     subject = f"Order Confirmation - {order.order_number}"
-    
-    # Calculate item details
-    items_html = ""
-    items_text = ""
-    for item in order.items:
-        variant = item.variant
-        product = variant.product if variant else None
-        items_html += f"""
-        <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">
-                {product.name if product else 'Product'} - {variant.size} {variant.color or ''}
-            </td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.quantity}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">₦{item.unit_price}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">₦{item.total_price}</td>
-        </tr>
-        """
-        items_text += f"- {product.name if product else 'Product'} - {variant.size} {variant.color or ''} x{item.quantity} = ₦{item.total_price}\n"
-    
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-            .header {{ background-color: #1a1a1a; padding: 20px; text-align: center; border-radius: 5px; color: white; }}
-            .content {{ padding: 20px; }}
-            .order-details {{ background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0; }}
-            table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-            th, td {{ padding: 10px; text-align: left; }}
-            th {{ background-color: #f8f9fa; }}
-            .total {{ font-weight: bold; font-size: 1.2em; }}
-            .footer {{ text-align: center; margin-top: 30px; color: #666; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>MAD RUSH</h1>
-                <p>Order Confirmation</p>
-            </div>
-            
-            <div class="content">
-                <p>Dear {order.customer_name},</p>
-                
-                <p>Thank you for your purchase! Your order has been confirmed and is being processed.</p>
-                
-                <div class="order-details">
-                    <p><strong>Order Number:</strong> {order.order_number}</p>
-                    <p><strong>Order Date:</strong> {order.created_at.strftime('%B %d, %Y at %I:%M %p')}</p>
-                    <p><strong>Payment Status:</strong> {order.payment_status.title()}</p>
-                </div>
-                
-                <h3>Order Items:</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {items_html}
-                    </tbody>
-                </table>
-                
-                <div class="total">
-                    <p>Total Amount: ₦{order.total_amount}</p>
-                </div>
-                
-                <h3>Shipping Address:</h3>
-                <p>{order.shipping_address}</p>
-                
-                <p>We'll contact you to arrange delivery within 24 hours.</p>
-                
-                <p>Best regards,<br>MAD RUSH Team</p>
-            </div>
-            
-            <div class="footer">
-                <p>This is an automated message. Please do not reply to this email.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
+
+    template = env.get_template("order_confirmation.html")
+    html_content = template.render(
+        order=order,
+        items=[
+            {
+                "name": item.variant.product.name if item.variant and item.variant.product else 'Product',
+                "size": item.variant.size if item.variant else '',
+                "color": item.variant.color if item.variant else '',
+                "quantity": item.quantity,
+                "price": float(item.unit_price),
+                "total": float(item.total_price)
+            }
+            for item in order.items
+        ],
+        total=float(order.total_amount)
+    )
+
     text_content = f"""
     Order Confirmation - {order.order_number}
-    
+
     Dear {order.customer_name},
-    
+
     Thank you for your purchase! Your order has been confirmed.
-    
+
     Order Details:
     - Order Number: {order.order_number}
     - Order Date: {order.created_at.strftime('%B %d, %Y at %I:%M %p')}
     - Payment Status: {order.payment_status.title()}
-    
+
     Order Items:
-    {items_text}
-    
+    {'\n'.join([f'- {item.variant.product.name if item.variant and item.variant.product else 'Product'} - {item.variant.size if item.variant else ''} {item.variant.color if item.variant else ''} x{item.quantity} = ₦{item.total_price}' for item in order.items])}
+
     Total Amount: ₦{order.total_amount}
-    
+
     Shipping Address:
     {order.shipping_address}
-    
+
     Best regards,
     MAD RUSH Team
     """
-    
+
     return subject, html_content, text_content
 
 def send_order_confirmation(order):

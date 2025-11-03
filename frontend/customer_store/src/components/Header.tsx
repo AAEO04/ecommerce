@@ -7,7 +7,7 @@ import { Menu } from 'lucide-react';
 import { AnimationContext } from '@/context/AnimationContext';
 import { motion } from 'framer-motion';
 
-export default function Header() {
+export function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const totalCount = useCartStore((s) => s.getTotalCount());

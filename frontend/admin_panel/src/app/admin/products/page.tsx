@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { adminApi } from '@/lib/admin/api'
+import { Loading } from '@/components/ui/loading'
 import type { Product } from '@/types/admin'
 import { Plus, Edit, Trash2, Upload, X, Package } from 'lucide-react'
 
@@ -48,11 +49,25 @@ export default function AdminProducts() {
     // Upload images first
     let imageUrls: string[] = []
     if (formData.imageFiles.length > 0) {
-      for (const file of formData.imageFiles) {
-        const uploadResponse = await adminApi.uploadImage(file)
-        if (uploadResponse.success && uploadResponse.data) {
-          imageUrls.push(uploadResponse.data.image_url)
+      const uploadPromises = formData.imageFiles.map(file => 
+        adminApi.uploadImage(file)
+      )
+
+      const uploadResults = await Promise.allSettled(uploadPromises)
+
+      uploadResults.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value.success && result.value.data) {
+          imageUrls.push(result.value.data.image_url)
+        } else {
+          console.error(`Failed to upload image ${index + 1}:`, 
+            result.status === 'rejected' ? result.reason : result.value.error
+          )
         }
+      })
+
+      if (imageUrls.length === 0 && formData.imageFiles.length > 0) {
+        alert('All image uploads failed. Please try again.')
+        return
       }
     }
 
@@ -234,8 +249,10 @@ export default function AdminProducts() {
                                   const newFiles = formData.imageFiles.filter((_, i) => i !== index)
                                   setFormData(prev => ({ ...prev, imageFiles: newFiles }))
                                 }}
+                                aria-label={`Remove image ${file.name}`}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4" aria-hidden="true" />
+                                <span className="sr-only">Remove image</span>
                               </Button>
                             </div>
                           ))}
@@ -335,18 +352,8 @@ export default function AdminProducts() {
 
         {/* Products Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-6">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center justify-center py-12">
+            <Loading text="Loading products..." />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -6,82 +6,44 @@ export interface Product {
   images: { image_url: string }[];
 }
 
-import { CONFIG } from '@/lib/config'
+import { CONFIG } from '@/lib/config';
+import { fetchWithRetry } from '@/lib/fetchWithRetry';
+
 export const API_BASE = CONFIG.API_BASE;
 
-export class ApiError extends Error {
-  constructor(public status: number, message: string) {
-    super(message)
-    this.name = 'ApiError'
-  }
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  images: { image_url: string }[];
 }
 
 export async function fetchProducts(): Promise<Product[]> {
-  try {
-    const res = await fetch(`${API_BASE}/api/products`, {
-      cache: 'no-store',
-      next: { revalidate: 60 } // Add revalidation
-    });
-
-    if (!res.ok) {
-      throw new ApiError(res.status, `Failed to fetch products: ${res.statusText}`);
-    }
-
-    return res.json();
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    if (error instanceof Error) {
-        throw new Error(`Failed to fetch products: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while fetching products');
-  }
+  return fetchWithRetry(`${API_BASE}/api/products`, {
+    next: { revalidate: 60 }, // Add revalidation
+  });
 }
 
 export async function fetchProduct(id: number): Promise<Product> {
-  try {
-    const res = await fetch(`${API_BASE}/api/products/${id}`, {
-      cache: 'no-store',
-      next: { revalidate: 60 } // Add revalidation
-    });
-
-    if (!res.ok) {
-      throw new ApiError(res.status, `Failed to fetch product: ${res.statusText}`);
-    }
-
-    return res.json();
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    if (error instanceof Error) {
-        throw new Error(`Failed to fetch product: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred while fetching product');
-  }
+  return fetchWithRetry(`${API_BASE}/api/products/${id}`, {
+    next: { revalidate: 60 }, // Add revalidation
+  });
 }
 
-export async function checkout(payload: any) {
-  try {
-    const res = await fetch(`${API_BASE}/api/orders/checkout`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+export interface CheckoutPayload {
+  cart: { variant_id: number; quantity: number }[];
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: string;
+  payment_method: string;
+}
 
-    if (!res.ok) {
-      throw new ApiError(res.status, `Failed to checkout: ${res.statusText}`);
-    }
-
-    return res.json();
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    if (error instanceof Error) {
-        throw new Error(`Failed to checkout: ${error.message}`);
-    }
-    throw new Error('An unknown error occurred during checkout');
-  }
+export async function checkout(payload: CheckoutPayload) {
+  return fetchWithRetry(`${API_BASE}/api/orders/checkout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,35 +10,12 @@ import {
   Search, Eye, Edit, X, MapPin, Phone, Mail, User
 } from 'lucide-react'
 import { adminApi } from '@/lib/admin/api'
-
-interface Order {
-  id: number
-  order_number: string
-  customer_name: string
-  customer_email: string
-  customer_phone: string
-  shipping_address: string
-  total_amount: number
-  status: string
-  payment_status: string
-  payment_method: string
-  created_at: string
-  notes?: string
-  items?: Array<{
-    id: number
-    quantity: number
-    unit_price: number
-    total_price: number
-    variant: {
-      id: number
-      size: string
-      color: string
-      product: {
-        name: string
-      }
-    }
-  }>
-}
+import DOMPurify from 'dompurify'
+import { ORDER_STATUS, PAYMENT_STATUS, STATUS_COLORS } from '@/lib/constants'
+import { useDebounce } from '@/hooks/useDebounce'
+import { Loading } from '@/components/ui/loading'
+import type { Order, OrderStatus, PaymentStatus, OrderFilters } from '@/types/admin'
+import { toast } from 'sonner'
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -48,95 +25,113 @@ export default function OrdersPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [filter, setFilter] = useState({
+  const [filter, setFilter] = useState<OrderFilters>({
     status: 'all',
     paymentStatus: 'all',
     search: ''
   })
 
-  // Initialize filters from query string once
-  useEffect(() => {
-    const status = searchParams.get('status') || 'all'
-    const paymentStatus = searchParams.get('payment_status') || 'all'
-    const search = searchParams.get('search') || ''
-    setFilter({ status, paymentStatus, search })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const [searchInput, setSearchInput] = useState(filter.search)
+  const debouncedSearch = useDebounce(searchInput, 500)
 
-  // Persist filters to query string when changed
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (filter.status && filter.status !== 'all') params.set('status', filter.status)
-    if (filter.paymentStatus && filter.paymentStatus !== 'all') params.set('payment_status', filter.paymentStatus)
-    if (filter.search) params.set('search', filter.search)
-    const query = params.toString()
-    router.replace(`/admin/orders${query ? `?${query}` : ''}`)
-    fetchOrders()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter.status, filter.paymentStatus, filter.search])
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  const fetchOrders = async () => {
+  // Initialize from URL once
+  useEffect(() => {
+    if (!isInitialized) {
+      const status = searchParams.get('status') || 'all'
+      const paymentStatus = searchParams.get('payment_status') || 'all'
+      const search = searchParams.get('search') || ''
+      
+      setFilter({ status, paymentStatus, search })
+      setSearchInput(search)
+      setIsInitialized(true)
+    }
+  }, [isInitialized, searchParams])
+
+  useEffect(() => {
+    setFilter(prev => ({ ...prev, search: debouncedSearch }))
+  }, [debouncedSearch])
+
+  const fetchOrders = useCallback(async () => {
     setLoading(true)
     try {
       const response = await adminApi.getOrders(filter)
       if (response.success && response.data) {
         setOrders(response.data)
+      } else {
+        toast.error(response.message || 'Failed to fetch orders.')
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error)
+      toast.error('An unexpected error occurred while fetching orders.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter])
 
-  const fetchOrderDetails = async (orderId: number) => {
+  // Update URL when filters change
+  useEffect(() => {
+    if (!isInitialized) return
+
+    const params = new URLSearchParams()
+    if (filter.status !== 'all') params.set('status', filter.status)
+    if (filter.paymentStatus !== 'all') params.set('payment_status', filter.paymentStatus)
+    if (filter.search) params.set('search', filter.search)
+    
+    const query = params.toString()
+    router.replace(`/admin/orders${query ? `?${query}` : ''}`, { scroll: false })
+    fetchOrders()
+  }, [filter, isInitialized, router, fetchOrders])
+
+  const fetchOrderDetails = useCallback(async (orderId: number) => {
     try {
       const response = await adminApi.getOrder(orderId)
       if (response.success && response.data) {
         setSelectedOrder(response.data)
         setShowOrderModal(true)
+      } else {
+        toast.error(response.message || 'Failed to fetch order details.')
       }
     } catch (error) {
       console.error('Failed to fetch order details:', error)
+      toast.error('An unexpected error occurred while fetching order details.')
     }
-  }
+  }, [])
 
-  const handleUpdateStatus = async (orderId: number, status: string, paymentStatus?: string) => {
+  const handleUpdateStatus = useCallback(async (orderId: number, status: OrderStatus, paymentStatus?: PaymentStatus) => {
     setUpdatingStatus(true)
     try {
-      const updates: any = { status }
+      const updates: { status?: OrderStatus, payment_status?: PaymentStatus } = { status }
       if (paymentStatus) updates.payment_status = paymentStatus
       
       const response = await adminApi.updateOrderStatus(orderId, updates)
       if (response.success) {
+        toast.success('Order status updated successfully.')
         fetchOrders()
         if (selectedOrder && selectedOrder.id === orderId) {
           fetchOrderDetails(orderId)
         }
+      } else {
+        toast.error(response.message || 'Failed to update order status.')
       }
     } catch (error) {
       console.error('Failed to update order status:', error)
+      toast.error('An unexpected error occurred while updating order status.')
     } finally {
       setUpdatingStatus(false)
     }
-  }
+  }, [fetchOrders, fetchOrderDetails, selectedOrder])
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      processing: 'bg-blue-100 text-blue-800 border-blue-200',
-      shipped: 'bg-purple-100 text-purple-800 border-purple-200',
-      completed: 'bg-green-100 text-green-800 border-green-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200'
-    }
-    return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200'
+  const getStatusColor = (status: OrderStatus) => {
+    return STATUS_COLORS[status] || 'bg-gray-100 text-gray-800 border-gray-200'
   }
 
   // Calculate stats
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    completed: orders.filter(o => o.status === 'completed').length,
+    pending: orders.filter(o => o.status === ORDER_STATUS.PENDING).length,
+    completed: orders.filter(o => o.status === ORDER_STATUS.COMPLETED).length,
     revenue: orders.reduce((sum, o) => sum + parseFloat(o.total_amount.toString()), 0)
   }
 
@@ -204,33 +199,34 @@ export default function OrdersPage() {
                   <input
                     type="text"
                     placeholder="Search by order number, customer name..."
+                    aria-label="Search by order number or customer name"
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    value={filter.search}
-                    onChange={(e) => setFilter({...filter, search: e.target.value})}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
               </div>
               <select
+                aria-label="Filter by order status"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 value={filter.status}
-                onChange={(e) => setFilter({...filter, status: e.target.value})}
+                onChange={(e) => setFilter({...filter, status: e.target.value as OrderStatus | 'all'})}
               >
                 <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                {Object.values(ORDER_STATUS).map(status => (
+                  <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                ))}
               </select>
               <select
+                aria-label="Filter by payment status"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 value={filter.paymentStatus}
-                onChange={(e) => setFilter({...filter, paymentStatus: e.target.value})}
+                onChange={(e) => setFilter({...filter, paymentStatus: e.target.value as PaymentStatus | 'all'})}
               >
                 <option value="all">All Payments</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
-                <option value="failed">Failed</option>
+                {Object.values(PAYMENT_STATUS).map(status => (
+                  <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                ))}
               </select>
             </div>
           </CardHeader>
@@ -241,7 +237,7 @@ export default function OrdersPage() {
           <CardContent className="p-0">
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="admin-loading"></div>
+                <Loading text="Loading orders..." />
               </div>
             ) : orders.length === 0 ? (
               <div className="text-center py-12">
@@ -307,7 +303,7 @@ export default function OrdersPage() {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
-                              order.payment_status === 'paid' || order.payment_status === 'completed' 
+                              order.payment_status === PAYMENT_STATUS.PAID || order.payment_status === PAYMENT_STATUS.COMPLETED 
                                 ? 'bg-green-100 text-green-800 border-green-200' 
                                 : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                             }`}>
@@ -354,11 +350,12 @@ export default function OrdersPage() {
                   <p className="text-sm text-gray-500">{selectedOrder.order_number}</p>
                 </div>
                 <button
-                  aria-label="Close order details"
+                  aria-label="Close order details modal"
                   onClick={() => setShowOrderModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5" aria-hidden="true" />
+                  <span className="sr-only">Close</span>
                 </button>
               </div>
 
@@ -442,14 +439,12 @@ export default function OrdersPage() {
                       <select
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         value={selectedOrder.status}
-                        onChange={(e) => handleUpdateStatus(selectedOrder.id, e.target.value)}
+                        onChange={(e) => handleUpdateStatus(selectedOrder.id, e.target.value as OrderStatus)}
                         disabled={updatingStatus}
                       >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped (Manual Delivery)</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
+                        {Object.values(ORDER_STATUS).map(status => (
+                          <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -457,13 +452,12 @@ export default function OrdersPage() {
                       <select
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         value={selectedOrder.payment_status}
-                        onChange={(e) => handleUpdateStatus(selectedOrder.id, selectedOrder.status, e.target.value)}
+                        onChange={(e) => handleUpdateStatus(selectedOrder.id, selectedOrder.status, e.target.value as PaymentStatus)}
                         disabled={updatingStatus}
                       >
-                        <option value="pending">Pending</option>
-                        <option value="paid">Paid</option>
-                        <option value="completed">Completed</option>
-                        <option value="failed">Failed</option>
+                        {Object.values(PAYMENT_STATUS).map(status => (
+                          <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -482,7 +476,10 @@ export default function OrdersPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Notes</h3>
                     <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                      <p className="text-sm text-gray-700">{selectedOrder.notes}</p>
+                      <p 
+                        className="text-sm text-gray-700"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedOrder.notes) }}
+                      />
                     </div>
                   </div>
                 )}

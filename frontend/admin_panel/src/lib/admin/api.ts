@@ -1,24 +1,57 @@
-import type { Product, ApiResponse, AdminApiConfig } from '@/types/admin'
+import type { Product, ApiResponse } from '@/types/admin'
 import { CONFIG } from '@/lib/config'
 import { toast } from 'sonner'
+
+interface AdminApiConfig {
+  apiUrl: string
+}
 
 /**
  * Admin API Client with enhanced security features
  * Includes authentication, request validation, and secure error handling
  */
 class AdminApiClient {
+  private apiUrl: string
   private adminApiUrl: string
   private productApiUrl: string
+  private authApiUrl: string
 
   constructor(config: AdminApiConfig) {
-    this.adminApiUrl = config.adminApiUrl
-    this.productApiUrl = config.productApiUrl
+    this.apiUrl = config.apiUrl
+    this.adminApiUrl = `${this.apiUrl}/api/admin`
+    this.productApiUrl = `${this.apiUrl}/products`
+    this.authApiUrl = `${this.apiUrl}/api/auth`
   }
 
   private getHeaders(): HeadersInit {
     return {
       'Content-Type': 'application/json',
     }
+  }
+
+  private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
+    if (!response.ok) {
+      if (response.status === 401) {
+        if (typeof window !== 'undefined') {
+          // The UI layer should handle this error and redirect to the login page.
+          toast.error('Session expired. Please log in again.')
+        }
+        return { 
+          success: false, 
+          error: 'Authentication expired. Please log in again.',
+          isAuthError: true // Add a flag for the UI to check
+        }
+      }
+
+      const errorData = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        error: errorData.message || `HTTP ${response.status}: ${response.statusText}`
+      }
+    }
+
+    const data = await response.json()
+    return { success: true, data }
   }
 
   private async request<T>(
@@ -32,30 +65,10 @@ class AdminApiClient {
           ...this.getHeaders(),
           ...options.headers,
         },
-        credentials: 'include', // Include cookies in requests
+        credentials: 'include',
       })
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('Session expired. Please log in again.')
-          if (typeof window !== 'undefined') {
-            window.location.href = '/admin/login'
-          }
-          return { success: false, error: 'Authentication expired. Please log in again.' }
-        }
-
-        const errorData = await response.json().catch(() => ({}))
-        return {
-          success: false,
-          error: errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        }
-      }
-
-      const data = await response.json()
-      return {
-        success: true,
-        data
-      }
+      return this.handleResponse<T>(response)
     } catch (error) {
       console.error('API request failed:', error)
       return {
@@ -98,7 +111,7 @@ class AdminApiClient {
       stock_quantity: number
     }>
   }): Promise<ApiResponse<Product>> {
-    return this.request<Product>(`${this.adminApiUrl}/admin/products/`, {
+    return this.request<Product>(`${this.adminApiUrl}/products/`, {
       method: 'POST',
       body: JSON.stringify(productData),
     })
@@ -118,14 +131,14 @@ class AdminApiClient {
       }>
     }
   ): Promise<ApiResponse<Product>> {
-    return this.request<Product>(`${this.adminApiUrl}/admin/products/${productId}`, {
+    return this.request<Product>(`${this.adminApiUrl}/products/${productId}`, {
       method: 'PUT',
       body: JSON.stringify(productData),
     })
   }
 
   async deleteProduct(productId: number): Promise<ApiResponse<void>> {
-    return this.request<void>(`${this.adminApiUrl}/admin/products/${productId}`, {
+    return this.request<void>(`${this.adminApiUrl}/products/${productId}`, {
       method: 'DELETE',
     })
   }
@@ -160,26 +173,7 @@ class AdminApiClient {
         body: formData,
       })
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          return {
-            success: false,
-            error: 'Authentication expired. Please log in again.'
-          }
-        }
-
-        const errorData = await response.json().catch(() => ({}))
-        return {
-          success: false,
-          error: errorData.message || `Upload failed: ${response.statusText}`
-        }
-      }
-
-      const data = await response.json()
-      return {
-        success: true,
-        data
-      }
+      return this.handleResponse(response)
     } catch (error) {
       return {
         success: false,
@@ -224,7 +218,7 @@ class AdminApiClient {
   // Authentication check - verify with backend
   async isAuthenticated(): Promise<boolean> {
     try {
-      const response = await this.request(`${this.adminApiUrl}/verify`)
+      const response = await this.request(`${this.authApiUrl}/verify`)
       return response.success
     } catch {
       return false
@@ -234,7 +228,7 @@ class AdminApiClient {
   // Logout
   async logout(): Promise<void> {
     try {
-      await this.request(`${this.adminApiUrl}/logout`, {
+      await this.request(`${this.authApiUrl}/logout`, {
         method: 'POST'
       })
     } catch (error) {
@@ -245,8 +239,7 @@ class AdminApiClient {
 
 // Create singleton instance
 const config: AdminApiConfig = {
-  adminApiUrl: CONFIG.ADMIN_API_URL,
-  productApiUrl: CONFIG.PRODUCT_API_URL,
+  apiUrl: CONFIG.API_URL,
 }
 
 export const adminApi = new AdminApiClient(config)
