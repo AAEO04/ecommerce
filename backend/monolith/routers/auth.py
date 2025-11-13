@@ -12,7 +12,7 @@ from utils.constants import ADMIN_ROLE
 router = APIRouter()
 
 class LoginRequest(BaseModel):
-    username: str
+    email: str
     password: str
 
 class LoginResponse(BaseModel):
@@ -20,7 +20,7 @@ class LoginResponse(BaseModel):
     expires_in: int
 
 class AdminInfo(BaseModel):
-    username: str
+    email: str
     user_type: str
 
 @router.post("/login", response_model=LoginResponse)
@@ -29,7 +29,7 @@ def admin_login(request: Request, login_data: LoginRequest, response: Response, 
     """Authenticate admin user and return JWT token in HttpOnly cookie"""
     
     # Validate credentials
-    admin_user = authenticate_admin(login_data.username, login_data.password, db)
+    admin_user = authenticate_admin(login_data.email, login_data.password, db)
     if not admin_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -38,7 +38,7 @@ def admin_login(request: Request, login_data: LoginRequest, response: Response, 
         )
     
     # Create JWT token
-    access_token = create_admin_token(admin_user.username)
+    access_token = create_admin_token(admin_user.email)
     
     # Set HttpOnly cookie
     response.set_cookie(
@@ -60,7 +60,7 @@ def admin_login(request: Request, login_data: LoginRequest, response: Response, 
 def get_admin_info(current_admin: dict = Depends(get_current_admin_from_cookie)):
     """Get current admin information"""
     return AdminInfo(
-        username=current_admin["username"],
+        email=current_admin["email"],
         user_type=ADMIN_ROLE
     )
 
@@ -75,7 +75,7 @@ def admin_logout(response: Response):
     )
     return {"message": "Successfully logged out"}
 
-@router.post("/verify")
+@router.get("/verify")
 def verify_admin_token(current_admin: dict = Depends(get_current_admin_from_cookie)):
     """Verify if admin token is valid"""
-    return {"valid": True, "admin": current_admin["username"]}
+    return {"valid": True, "admin": current_admin["email"]}

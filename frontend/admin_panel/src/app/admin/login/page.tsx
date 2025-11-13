@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react'
+
+// Get API URL from environment or use default
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -22,14 +26,14 @@ export default function AdminLogin() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include', // Include cookies
         body: JSON.stringify({
-          username: email,
+          email: email,
           password: password
         })
       })
@@ -119,6 +123,11 @@ export default function AdminLogin() {
                     )}
                     <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
                   </Button>
+                </div>
+                <div className="flex justify-end">
+                  <Link href="/admin/forgot-password">
+                    <span className="text-sm text-gray-600 hover:text-gray-900 underline">Forgot password?</span>
+                  </Link>
                 </div>
               </div>
 

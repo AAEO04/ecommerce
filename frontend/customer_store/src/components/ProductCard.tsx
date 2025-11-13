@@ -3,25 +3,41 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/stores/useCartStore';
+import { useWishlistStore } from '@/stores/useWishlistStore';
 import { formatNGN } from '@/utils/currency';
 import { Product } from '@/lib/api';
+import { motion } from 'framer-motion';
 import { useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { useEffect, useRef, useContext } from 'react';
+import { useEffect, useRef, useContext, useState } from 'react';
 import { useInViewAnimation } from '@/hooks/useInViewAnimation';
 import { AnimationContext } from '@/context/AnimationContext';
+import { QuickViewModal } from '@/components/ui/QuickViewModal';
 import toast from 'react-hot-toast';
+import { Heart, Eye } from 'lucide-react';
 
-export function ProductCard({ product }: { product: Product }) {
+interface ProductCardProps {
+  product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);
+  const addToWishlist = useWishlistStore((s) => s.addItem);
+  const removeFromWishlist = useWishlistStore((s) => s.removeItem);
+  const isInWishlist = useWishlistStore((s) => s.isInWishlist);
   const imgRef = useRef<HTMLImageElement>(null);
   const animationContext = useContext(AnimationContext);
-  const { ref, controls, inView } = useInViewAnimation({
+  const { ref, controls } = useInViewAnimation({
     triggerOnce: true,
     threshold: 0.1,
   });
+  
+  const [showQuickView, setShowQuickView] = useState(false);
+  const inWishlist = isInWishlist(product.id);
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     addItem(product);
     toast.success(`${product.name} added to cart`);
 
@@ -36,8 +52,26 @@ export function ProductCard({ product }: { product: Product }) {
     }
   };
 
+  const handleToggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+      toast.success('Removed from wishlist');
+    } else {
+      addToWishlist(product);
+      toast.success('Added to wishlist');
+    }
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowQuickView(true);
+  };
+
   return (
-    <div className="group animated-gradient-border">
+    <>
       <motion.div
         ref={ref}
         animate={controls}
@@ -46,32 +80,77 @@ export function ProductCard({ product }: { product: Product }) {
           visible: { opacity: 1, y: 0 },
           hidden: { opacity: 0, y: 20 },
         }}
-        transition={{ duration: 0.5 }}
-        className="border rounded p-3 bg-neutral-900 border-neutral-800 relative z-10 transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:[animation:shake_0.5s_infinite]"
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="group bg-white rounded-xl overflow-hidden border border-gray-200 hover:border-purple-300 transition-all duration-300 hover:shadow-xl"
       >
         <Link href={`/product/${product.id}`} className="block">
-          <Image
-            ref={imgRef}
-            src={product.images[0].image_url}
-            alt={product.name}
-            width={400}
-            height={400}
-            className="w-full h-32 object-cover rounded-lg"
-            priority={false} // or true for above-the-fold images
-            loading="lazy"
-          />
+          <div className="relative aspect-square overflow-hidden bg-gray-50">
+            <Image
+              ref={imgRef}
+              src={product.images[0].image_url}
+              alt={product.name}
+              width={500}
+              height={500}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              priority={false}
+              loading="lazy"
+            />
+            
+            {/* Hover overlay with quick actions */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 gap-3">
+              <button
+                onClick={handleQuickView}
+                className="p-3 bg-white hover:bg-purple-50 rounded-full transition-all duration-200 hover:scale-110 shadow-lg"
+                title="Quick view"
+              >
+                <Eye className="h-5 w-5 text-purple-600" />
+              </button>
+              <button
+                onClick={handleToggleWishlist}
+                className={`p-3 rounded-full transition-all duration-200 hover:scale-110 shadow-lg ${
+                  inWishlist
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-white hover:bg-red-50'
+                }`}
+                title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                <Heart className={`h-5 w-5 ${
+                  inWishlist ? 'text-white fill-current' : 'text-red-500'
+                }`} />
+              </button>
+            </div>
+          </div>
         </Link>
-        <div className="mt-2">
-          <h3 className="text-sm font-semibold text-neutral-50">{product.name}</h3>
-          <p className="text-xs text-neutral-400">{formatNGN(product.price)}</p>
+        
+        <div className="p-4 space-y-3">
+          <div className="space-y-1">
+            <h3 className="font-semibold text-gray-900 text-base line-clamp-2 leading-tight">{product.name}</h3>
+            <p className="text-lg font-bold text-purple-600">{formatNGN(product.price)}</p>
+          </div>
           <button
             onClick={handleAdd}
-            className="mt-2 w-full bg-accent-green hover:bg-accent-green-700 text-white text-xs py-1 rounded"
+            className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 group/btn"
           >
-            Add to Cart
+            <span>Add to Cart</span>
+            <motion.span
+              initial={{ x: 0 }}
+              whileHover={{ x: 4 }}
+              transition={{ duration: 0.2 }}
+            >
+              →
+            </motion.span>
           </button>
         </div>
       </motion.div>
-    </div>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={product}
+        isOpen={showQuickView}
+        onClose={() => setShowQuickView(false)}
+      />
+    </>
   );
 }
+
+export default ProductCard;

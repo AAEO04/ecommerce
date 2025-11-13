@@ -1,18 +1,28 @@
 # file: main.py
 import logging
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from routers import products, admin, orders, notifications, auth, payment
+from routers import products, admin, orders, notifications, auth, payment, admin_management, payment_routes
 from database import SessionLocal
 from config import settings
 from utils.rate_limiting import limiter, rate_limit_handler
 
 import os
+import traceback
 from sqlalchemy import text
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="MAD RUSH E-commerce API",
@@ -23,6 +33,43 @@ app = FastAPI(
 # Add rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+
+# Global exception handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Handle all unhandled exceptions"""
+    logger.error(f"Unhandled exception: {exc}")
+    logger.error(traceback.format_exc())
+    
+    # Don't leak stack traces in production
+    if settings.ENVIRONMENT == "production":
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": "Internal server error",
+                "error_id": str(id(exc))  # For tracking
+            }
+        )
+    else:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": str(exc),
+                "type": type(exc).__name__,
+                "traceback": traceback.format_exc().split('\n')
+            }
+        )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with better formatting"""
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Validation error",
+            "errors": exc.errors()
+        }
+    )
 
 # CORS middleware
 app.add_middleware(
@@ -48,6 +95,8 @@ async def add_security_headers(request, call_next):
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(admin_management.router, prefix="/api/admin-management", tags=["Admin Management"])
+app.include_router(payment_routes.router, prefix="/api/payment", tags=["Payment"])
 app.include_router(products.router, prefix="/api/products", tags=["Products"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])

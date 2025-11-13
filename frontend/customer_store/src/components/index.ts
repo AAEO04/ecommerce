@@ -14,5 +14,8 @@ export * from './features'
 // Common Components
 export * from './common'
 
-// Individual Components
+// Individual Components - export specific ones to avoid circular deps
 export { Categories } from './Categories'
+export { Header } from './Header'
+export { Footer } from './Footer'
+export { RecentlyViewed } from './RecentlyViewed'

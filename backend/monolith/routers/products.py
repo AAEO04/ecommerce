@@ -1,5 +1,5 @@
 # file: routers/products.py
-from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Request
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from typing import List, Optional
@@ -8,11 +8,49 @@ from decimal import Decimal
 import models
 import schemas
 from database import get_db
-from utils.cache import get_cache_key, get_from_cache, set_cache, invalidate_cache
+from utils.rate_limiting import limiter
+from utils.cache import redis_client, get_cache_key, get_from_cache, set_cache, invalidate_cache
 from utils.cache_decorator import cached
 from utils import constants
 
 router = APIRouter()
+
+@router.get("/categories", response_model=List[schemas.CategoryResponse])
+@limiter.limit("30/minute")
+def get_categories(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Get all active categories for customer store (public endpoint)"""
+    # Try to get from cache first
+    cache_key = "categories:active"
+    if redis_client:
+        try:
+            cached = redis_client.get(cache_key)
+            if cached:
+                categories_data = json.loads(cached)
+                return [schemas.CategoryResponse(**cat) for cat in categories_data]
+        except Exception as e:
+            # Cache miss or error, continue to database
+            pass
+    
+    # Fetch from database
+    categories = db.query(models.Category).filter(
+        models.Category.is_active == True
+    ).order_by(models.Category.name).all()
+    
+    result = [schemas.CategoryResponse.from_orm(cat) for cat in categories]
+    
+    # Cache for 5 minutes
+    if redis_client:
+        try:
+            categories_dict = [cat.dict() for cat in result]
+            redis_client.setex(cache_key, 300, json.dumps(categories_dict, default=str))
+        except Exception as e:
+            # Cache write failed, but we still have the data
+            pass
+    
+    return result
 
 @router.get("/", response_model=List[schemas.ProductResponse])
 @cached("products", expire=constants.CACHE_PRODUCT_TTL)
@@ -61,7 +99,7 @@ def read_products(
         query = query.distinct()
     
     products = query.offset(skip).limit(limit).all()
-    return result
+    return products
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 @cached("product", expire=constants.CACHE_PRODUCT_TTL, key_builder=lambda product_id, **kwargs: f"product:{product_id}")
@@ -79,7 +117,7 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    return result
+    return db_product
 
 @router.get("/{product_id}/variants", response_model=List[schemas.ProductVariantResponse])
 def get_product_variants(

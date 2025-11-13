@@ -1,0 +1,395 @@
+"""
+Payment Routes
+Handles payment initialization, verification, and callbacks
+"""
+from fastapi import APIRouter, HTTPException, status, Depends, Request, Response
+from pydantic import BaseModel, EmailStr
+from typing import Optional, Dict, Any
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Order, Payment
+from services.paystack_service import paystack_service
+from datetime import datetime
+import logging
+import uuid
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+
+# ============================================================================
+# REQUEST/RESPONSE MODELS
+# ============================================================================
+
+class InitializePaymentRequest(BaseModel):
+    email: EmailStr
+    amount: int  # Amount in kobo (₦100 = 10000 kobo)
+    order_id: int
+    callback_url: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class InitializePaymentResponse(BaseModel):
+    status: bool
+    message: str
+    authorization_url: Optional[str] = None
+    access_code: Optional[str] = None
+    reference: Optional[str] = None
+
+
+class VerifyPaymentResponse(BaseModel):
+    status: bool
+    message: str
+    data: Optional[Dict[str, Any]] = None
+
+
+# ============================================================================
+# PAYMENT ENDPOINTS
+# ============================================================================
+
+@router.post("/initialize", response_model=InitializePaymentResponse)
+async def initialize_payment(
+    request: InitializePaymentRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Initialize a Paystack payment transaction
+    
+    This endpoint should be called from your frontend after order creation.
+    It returns an authorization URL and access code for Paystack Popup.
+    """
+    try:
+        # Verify order exists
+        order = db.query(Order).filter(Order.id == request.order_id).first()
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Check if order is already paid
+        if order.payment_status == "paid":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Order is already paid"
+            )
+        
+        # Verify amount matches order total
+        order_amount_kobo = int(order.total_amount * 100)  # Convert to kobo
+        if request.amount != order_amount_kobo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Amount mismatch. Expected {order_amount_kobo} kobo, got {request.amount} kobo"
+            )
+        
+        # Generate unique reference
+        reference = f"MADRUSH-{order.id}-{uuid.uuid4().hex[:8].upper()}"
+        
+        # IDEMPOTENCY CHECK: Prevent duplicate payment initialization
+        existing_payment = db.query(Payment).filter(
+            Payment.order_id == order.id,
+            Payment.status.in_(["pending", "success"])
+        ).first()
+        
+        if existing_payment:
+            logger.info(f"Payment already exists for order {order.id}: {existing_payment.reference}")
+            # Return existing payment data instead of creating duplicate
+            return InitializePaymentResponse(
+                status=True,
+                message="Payment already initialized",
+                data={
+                    "authorization_url": existing_payment.authorization_url or "",
+                    "access_code": existing_payment.access_code or "",
+                    "reference": existing_payment.reference
+                }
+            )
+        
+        # Set callback URL
+        callback_url = request.callback_url or f"http://localhost:3000/payment/callback"
+        
+        # Prepare metadata
+        metadata = request.metadata or {}
+        metadata.update({
+            "order_id": order.id,
+            "customer_name": order.customer_name,
+            "customer_phone": order.customer_phone,
+            "cancel_action": f"http://localhost:3000/orders/{order.id}"
+        })
+        
+        # Initialize transaction with Paystack
+        result = paystack_service.initialize_transaction(
+            email=request.email,
+            amount=request.amount,
+            reference=reference,
+            callback_url=callback_url,
+            metadata=metadata
+        )
+        
+        if result["status"]:
+            # Create payment record
+            payment = Payment(
+                order_id=order.id,
+                reference=reference,
+                amount=order.total_amount,
+                status="pending",
+                payment_method="paystack",
+                created_at=datetime.utcnow()
+            )
+            db.add(payment)
+            
+            # Update order
+            order.payment_reference = reference
+            order.payment_status = "pending"
+            
+            db.commit()
+            
+            logger.info(f"Payment initialized for order {order.id}: {reference}")
+            
+            return InitializePaymentResponse(
+                status=True,
+                message="Payment initialized successfully",
+                authorization_url=result["authorization_url"],
+                access_code=result["access_code"],
+                reference=result["reference"]
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=result["message"]
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error initializing payment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to initialize payment: {str(e)}"
+        )
+
+
+@router.get("/verify/{reference}", response_model=VerifyPaymentResponse)
+async def verify_payment(
+    reference: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Verify a Paystack payment transaction
+    
+    This endpoint should be called after payment to confirm the transaction status.
+    Always verify before delivering value to the customer.
+    """
+    try:
+        # Verify with Paystack
+        result = paystack_service.verify_transaction(reference)
+        
+        if not result["status"]:
+            return VerifyPaymentResponse(
+                status=False,
+                message=result["message"]
+            )
+        
+        transaction_data = result["data"]
+        
+        # Find payment record
+        payment = db.query(Payment).filter(
+            Payment.reference == reference
+        ).first()
+        
+        if not payment:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Payment record not found"
+            )
+        
+        # Find order
+        order = db.query(Order).filter(Order.id == payment.order_id).first()
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Verify amount matches
+        expected_amount_kobo = int(payment.amount * 100)
+        actual_amount = transaction_data["amount"]
+        
+        if expected_amount_kobo != actual_amount:
+            logger.error(
+                f"Amount mismatch for {reference}: "
+                f"Expected {expected_amount_kobo}, got {actual_amount}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Payment amount mismatch"
+            )
+        
+        # Update payment record
+        payment.status = transaction_data["status"]
+        payment.paid_at = datetime.fromisoformat(
+            transaction_data["paid_at"].replace("Z", "+00:00")
+        ) if transaction_data.get("paid_at") else None
+        payment.channel = transaction_data.get("channel")
+        payment.fees = transaction_data.get("fees", 0) / 100  # Convert from kobo
+        import json
+        payment.payment_metadata = json.dumps(transaction_data.get("metadata", {}))
+        
+        # Update order status
+        if transaction_data["status"] == "success":
+            order.payment_status = "paid"
+            order.status = "processing"
+            logger.info(f"Payment successful for order {order.id}: {reference}")
+        else:
+            order.payment_status = "failed"
+            logger.warning(f"Payment failed for order {order.id}: {reference}")
+        
+        db.commit()
+        
+        return VerifyPaymentResponse(
+            status=True,
+            message="Payment verified successfully",
+            data={
+                "reference": reference,
+                "amount": transaction_data["amount"] / 100,  # Convert to naira
+                "status": transaction_data["status"],
+                "paid_at": transaction_data.get("paid_at"),
+                "customer_email": transaction_data["customer"]["email"],
+                "order_id": order.id,
+                "order_status": order.status
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying payment: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to verify payment: {str(e)}"
+        )
+
+
+@router.get("/callback")
+async def payment_callback(
+    reference: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Payment callback endpoint
+    
+    Paystack redirects here after payment.
+    This endpoint verifies the transaction and redirects to success/failure page.
+    """
+    try:
+        # Verify transaction
+        result = paystack_service.verify_transaction(reference)
+        
+        if result["status"] and result["data"]["status"] == "success":
+            # Payment successful
+            payment = db.query(Payment).filter(
+                Payment.reference == reference
+            ).first()
+            
+            if payment:
+                order_id = payment.order_id
+                return {
+                    "status": "success",
+                    "message": "Payment successful",
+                    "reference": reference,
+                    "order_id": order_id,
+                    "redirect_url": f"http://localhost:3000/orders/{order_id}/success"
+                }
+        
+        # Payment failed or not found
+        return {
+            "status": "failed",
+            "message": "Payment verification failed",
+            "reference": reference,
+            "redirect_url": f"http://localhost:3000/payment/failed?ref={reference}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in payment callback: {str(e)}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "redirect_url": "http://localhost:3000/payment/error"
+        }
+
+
+@router.post("/webhook")
+async def payment_webhook(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    Paystack webhook endpoint
+    
+    Receives webhook events from Paystack (e.g., charge.success).
+    Verifies signature and processes the event.
+    """
+    try:
+        # Get raw body for signature verification
+        body = await request.body()
+        
+        # Get signature from header
+        signature = request.headers.get("x-paystack-signature")
+        
+        if not signature:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing signature header"
+            )
+        
+        # Verify signature
+        if not paystack_service.verify_webhook_signature(body, signature):
+            logger.warning("Invalid webhook signature")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid signature"
+            )
+        
+        # Parse event data
+        event_data = await request.json()
+        
+        # Process event
+        result = paystack_service.process_webhook_event(event_data)
+        
+        # Handle charge.success event
+        if event_data.get("event") == "charge.success":
+            reference = result.get("reference")
+            
+            if reference:
+                # Find and update payment
+                payment = db.query(Payment).filter(
+                    Payment.reference == reference
+                ).first()
+                
+                if payment:
+                    payment.status = "success"
+                    payment.paid_at = datetime.utcnow()
+                    
+                    # Update order
+                    order = db.query(Order).filter(
+                        Order.id == payment.order_id
+                    ).first()
+                    
+                    if order:
+                        order.payment_status = "paid"
+                        order.status = "processing"
+                    
+                    db.commit()
+                    
+                    logger.info(f"Webhook processed: Payment confirmed for {reference}")
+        
+        return {"status": "success", "message": "Webhook processed"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

@@ -1,9 +1,14 @@
 import requests
 import json
+import hmac
+import hashlib
+import logging
 from decimal import Decimal
 from typing import Dict, Any, Optional
 from config import settings
 from utils import constants
+
+logger = logging.getLogger(__name__)
 
 class PaystackClient:
     """Paystack payment gateway client"""
@@ -173,6 +178,116 @@ class PaystackClient:
 
         return self._make_request("POST", "/transfer", payload)
 
+    def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
+        """
+        Verify Paystack webhook signature
+        
+        Args:
+            payload: Raw request body as bytes
+            signature: X-Paystack-Signature header value
+            
+        Returns:
+            True if signature is valid, False otherwise
+        """
+        try:
+            computed_signature = hmac.new(
+                self.secret_key.encode('utf-8'),
+                payload,
+                hashlib.sha512
+            ).hexdigest()
+            
+            is_valid = hmac.compare_digest(computed_signature, signature)
+            
+            if is_valid:
+                logger.info("Webhook signature verified successfully")
+            else:
+                logger.warning("Invalid webhook signature")
+            
+            return is_valid
+            
+        except Exception as e:
+            logger.error(f"Error verifying webhook signature: {str(e)}")
+            return False
+    
+    def process_webhook_event(self, event_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process Paystack webhook event
+        
+        Args:
+            event_data: Webhook event data
+            
+        Returns:
+            Dict containing processing result
+        """
+        event_type = event_data.get("event")
+        data = event_data.get("data", {})
+        
+        logger.info(f"Processing webhook event: {event_type}")
+        
+        if event_type == "charge.success":
+            return self._handle_charge_success(data)
+        elif event_type == "charge.failed":
+            return self._handle_charge_failed(data)
+        elif event_type == "transfer.success":
+            return self._handle_transfer_success(data)
+        elif event_type == "transfer.failed":
+            return self._handle_transfer_failed(data)
+        else:
+            logger.warning(f"Unhandled webhook event type: {event_type}")
+            return {
+                "status": True,
+                "message": f"Event {event_type} received but not processed"
+            }
+    
+    def _handle_charge_success(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle successful charge webhook"""
+        reference = data.get("reference")
+        amount = data.get("amount")
+        customer_email = data.get("customer", {}).get("email")
+        
+        logger.info(f"Charge success: {reference} - Amount: {amount} - Customer: {customer_email}")
+        
+        return {
+            "status": True,
+            "message": "Charge success event processed",
+            "reference": reference,
+            "amount": amount,
+            "customer_email": customer_email
+        }
+    
+    def _handle_charge_failed(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle failed charge webhook"""
+        reference = data.get("reference")
+        logger.warning(f"Charge failed: {reference}")
+        
+        return {
+            "status": True,
+            "message": "Charge failed event processed",
+            "reference": reference
+        }
+    
+    def _handle_transfer_success(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle successful transfer webhook"""
+        reference = data.get("reference")
+        logger.info(f"Transfer success: {reference}")
+        
+        return {
+            "status": True,
+            "message": "Transfer success event processed",
+            "reference": reference
+        }
+    
+    def _handle_transfer_failed(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle failed transfer webhook"""
+        reference = data.get("reference")
+        logger.warning(f"Transfer failed: {reference}")
+        
+        return {
+            "status": True,
+            "message": "Transfer failed event processed",
+            "reference": reference
+        }
+
 # Global Paystack client instance
 paystack_client = PaystackClient()
 
@@ -194,7 +309,7 @@ def process_payment(amount: Decimal, email: str, reference: str,
     try:
         if settings.PAYMENT_MODE == "mock":
             # Mock payment for development
-            print(f"Mock payment processed: {email} - NGN{amount} - Ref: {reference}")
+            logger.info(f"Mock payment processed: {email} - NGN{amount} - Ref: {reference}")
             return {
                 "status": "success",
                 "reference": reference,
@@ -226,12 +341,14 @@ def process_payment(amount: Decimal, email: str, reference: str,
                 "message": "Payment initialized successfully"
             }
         else:
+            logger.error(f"Payment initialization failed: {response.get('message')}")
             return {
                 "status": "failed",
                 "message": response.get("message", "Payment initialization failed")
             }
 
     except Exception as e:
+        logger.error(f"Payment processing error: {str(e)}")
         return {
             "status": "failed",
             "message": f"Payment processing failed: {str(e)}"
@@ -281,6 +398,7 @@ def verify_payment(reference: str) -> dict:
                 "message": "Payment verified successfully"
             }
         else:
+            logger.error(f"Payment verification failed: {response.get('message')}")
             return {
                 "status": "failed",
                 "verified": False,
@@ -288,6 +406,7 @@ def verify_payment(reference: str) -> dict:
             }
 
     except Exception as e:
+        logger.error(f"Verification error: {str(e)}")
         return {
             "status": "failed",
             "verified": False,
@@ -307,7 +426,7 @@ def get_supported_banks() -> list:
             return response.get("data", [])
         return []
     except Exception as e:
-        print(f"Failed to fetch banks: {e}")
+        logger.error(f"Failed to fetch banks: {e}")
         return []
 
 def create_bank_recipient(name: str, account_number: str, bank_code: str) -> dict:

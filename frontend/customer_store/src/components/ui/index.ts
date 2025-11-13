@@ -8,6 +8,11 @@
 // Basic UI Components (only export existing modules)
 export { Button } from './button'
 export { Icon } from './Icon'
-export { ProductCard } from '../ProductCard'
 export { Skeleton } from './skeleton'
 export { Cart } from './Cart'
+export { ImageLightbox } from './ImageLightbox'
+export { ProductImageGallery } from './ProductImageGallery'
+export { QuickViewModal } from './QuickViewModal'
+
+// NOTE: ProductCard is exported from @/components/ProductCard directly
+// Do not re-export it here to avoid circular dependencies

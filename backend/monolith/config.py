@@ -42,6 +42,8 @@ class Settings:
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
     if not JWT_SECRET_KEY:
         raise ValueError("FATAL: JWT_SECRET_KEY environment variable is not set.")
+    if len(JWT_SECRET_KEY) < 32:
+        raise ValueError("FATAL: JWT_SECRET_KEY must be at least 32 characters for security.")
     
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
@@ -50,8 +52,12 @@ class Settings:
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001").split(",")
     
     # Cookie Configuration
-    COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "true").lower() == "true"
-    COOKIE_SAMESITE: str = os.getenv("COOKIE_SAMESITE", "strict")
+    # Default to False for local dev, True for production
+    COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+    COOKIE_SAMESITE: str = os.getenv("COOKIE_SAMESITE", "lax")  # 'strict' breaks some flows
     COOKIE_MAX_AGE: int = int(os.getenv("COOKIE_MAX_AGE", "1800"))
+    
+    # Environment
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
 settings = Settings()

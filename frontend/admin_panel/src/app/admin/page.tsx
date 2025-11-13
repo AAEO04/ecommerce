@@ -78,32 +78,37 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-4xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+          <p className="mt-3 text-base text-gray-600 max-w-3xl">
             Welcome back! Here&apos;s what&apos;s happening with your store today.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {statsCards.map((stat) => {
             const Icon = stat.icon
             return (
-              <Card key={stat.name}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
+              <Card key={stat.name} className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardTitle className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
                     {stat.name}
                   </CardTitle>
-                  <Icon className="h-4 w-4 text-gray-600" />
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Icon className="h-5 w-5 text-purple-600" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <p className={`text-xs ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change} from last month
-                  </p>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</div>
+                  <div className="flex items-center gap-1">
+                    <span className={`text-sm font-semibold ${stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}`}>
+                      {stat.change}
+                    </span>
+                    <span className="text-sm text-gray-500">from last month</span>
+                  </div>
                 </CardContent>
               </Card>
             )

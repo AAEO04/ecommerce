@@ -117,9 +117,55 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(USERNAME_MAX_LENGTH), unique=True, nullable=False, index=True)
+
+    email = Column(String(CUSTOMER_EMAIL_MAX_LENGTH), unique=True, index=True)
     hashed_password = Column(String(PASSWORD_HASH_MAX_LENGTH), nullable=False)
     role = Column(String(ROLE_MAX_LENGTH), default=ADMIN_ROLE, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class AdminInvite(Base):
+    __tablename__ = "admin_invites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(CUSTOMER_EMAIL_MAX_LENGTH), nullable=False, index=True)
+    token_hash = Column(String(PASSWORD_HASH_MAX_LENGTH), nullable=False)  # Hashed token
+    role = Column(String(ROLE_MAX_LENGTH), default=ADMIN_ROLE, nullable=False)
+    invited_by = Column(Integer, ForeignKey("admin_users.id"), nullable=False)
+    is_used = Column(Boolean, default=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    used_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(CUSTOMER_EMAIL_MAX_LENGTH), nullable=False, index=True)
+    token_hash = Column(String(PASSWORD_HASH_MAX_LENGTH), nullable=False)  # Hashed token
+    is_used = Column(Boolean, default=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    used_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, index=True)
+    reference = Column(String(PAYMENT_REFERENCE_MAX_LENGTH), unique=True, nullable=False, index=True)
+    amount = Column(Numeric(10, 2), nullable=False)
+    status = Column(String(PAYMENT_STATUS_MAX_LENGTH), default="pending")  # pending, success, failed
+    payment_method = Column(String(PAYMENT_METHOD_MAX_LENGTH), default="paystack")
+    channel = Column(String(50), nullable=True)  # card, bank, ussd, etc.
+    fees = Column(Numeric(10, 2), default=0)
+    payment_metadata = Column(Text, nullable=True)  # JSON string
+    paid_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    order = relationship("Order", backref="payments")

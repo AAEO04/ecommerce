@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { persist, StateStorage } from 'zustand/middleware'
+import { persist, StateStorage, StorageValue, PersistStorage } from 'zustand/middleware'
 import { Product } from '@/lib/api'
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
@@ -9,21 +9,23 @@ import Utf8 from 'crypto-js/enc-utf8';
 // IMPORTANT: Move this key to an environment variable
 const SECRET_KEY = process.env.NEXT_PUBLIC_CART_ENCRYPTION_KEY || 'your-super-secret-key';
 
-const encryptedStorage: StateStorage = {
-  getItem: (name: string): string | null => {
+const encryptedStorage: PersistStorage<CartState> = {
+  getItem: (name: string): StorageValue<CartState> | null => {
     const str = localStorage.getItem(name);
     if (!str) return null;
 
     try {
       const bytes = AES.decrypt(str, SECRET_KEY);
-      return bytes.toString(Utf8);
+      const decrypted = bytes.toString(Utf8);
+      return JSON.parse(decrypted);
     } catch (error) {
       console.error("Failed to decrypt cart data:", error);
       return null;
     }
   },
-  setItem: (name: string, value: string): void => {
-    const encrypted = AES.encrypt(value, SECRET_KEY).toString();
+  setItem: (name: string, value: StorageValue<CartState>): void => {
+    const stringified = JSON.stringify(value);
+    const encrypted = AES.encrypt(stringified, SECRET_KEY).toString();
     localStorage.setItem(name, encrypted);
   },
   removeItem: (name: string): void => {
@@ -38,20 +40,37 @@ export type CartItem = {
   name?: string
   price?: number
   quantity: number
+  image?: string
+  savedForLater?: boolean
+}
+
+type UndoAction = {
+  type: 'remove' | 'quantity'
+  item: CartItem
+  previousQuantity?: number
 }
 
 type CartState = {
   items: CartItem[]
+  savedForLater: CartItem[]
+  undoStack: UndoAction[]
   addItem: (product: Product) => void
   removeItem: (id: string) => void
+  updateQuantity: (id: string, quantity: number) => void
+  moveToSaved: (id: string) => void
+  moveToCart: (id: string) => void
+  undo: () => void
   clear: () => void
   getTotalCount: () => number
+  getTotal: () => number
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      savedForLater: [],
+      undoStack: [],
       addItem: (product) => {
         set((state) => {
           const existing = state.items.find((i) => i.productId === product.id)
@@ -70,23 +89,94 @@ export const useCartStore = create<CartState>()(
           const newItem: CartItem = {
             id: `product-${product.id}`,
             productId: product.id,
-            variant_id: product.id, // Assuming product.id for now
+            variant_id: product.id,
             name: product.name,
             price: product.price,
             quantity: 1,
+            image: product.images?.[0]?.image_url,
+            savedForLater: false,
           }
           
           return { items: [...state.items, newItem] }
         })
       },
-      removeItem: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
-      clear: () => set({ items: [] }),
+      removeItem: (id) => {
+        const item = get().items.find((i) => i.id === id)
+        if (item) {
+          set((state) => ({
+            items: state.items.filter((i) => i.id !== id),
+            undoStack: [...state.undoStack, { type: 'remove', item }],
+          }))
+        }
+      },
+      updateQuantity: (id, quantity) => {
+        if (quantity < 1) return
+        const item = get().items.find((i) => i.id === id)
+        if (item) {
+          set((state) => ({
+            items: state.items.map((i) =>
+              i.id === id ? { ...i, quantity } : i
+            ),
+            undoStack: [...state.undoStack, { type: 'quantity', item, previousQuantity: item.quantity }],
+          }))
+        }
+      },
+      moveToSaved: (id) => {
+        const item = get().items.find((i) => i.id === id)
+        if (item) {
+          set((state) => ({
+            items: state.items.filter((i) => i.id !== id),
+            savedForLater: [...state.savedForLater, { ...item, savedForLater: true }],
+          }))
+        }
+      },
+      moveToCart: (id) => {
+        const item = get().savedForLater.find((i) => i.id === id)
+        if (item) {
+          set((state) => ({
+            savedForLater: state.savedForLater.filter((i) => i.id !== id),
+            items: [...state.items, { ...item, savedForLater: false }],
+          }))
+        }
+      },
+      undo: () => {
+        const undoAction = get().undoStack[get().undoStack.length - 1]
+        if (!undoAction) return
+        
+        set((state) => {
+          const newUndoStack = state.undoStack.slice(0, -1)
+          
+          if (undoAction.type === 'remove') {
+            return {
+              items: [...state.items, undoAction.item],
+              undoStack: newUndoStack,
+            }
+          } else if (undoAction.type === 'quantity' && undoAction.previousQuantity) {
+            return {
+              items: state.items.map((i) =>
+                i.id === undoAction.item.id
+                  ? { ...i, quantity: undoAction.previousQuantity! }
+                  : i
+              ),
+              undoStack: newUndoStack,
+            }
+          }
+          
+          return state
+        })
+      },
+      clear: () => set({ items: [], savedForLater: [], undoStack: [] }),
       getTotalCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      getTotal: () => get().items.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0),
     }),
     {
       name: 'cart-storage',
       storage: encryptedStorage,
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ 
+        items: state.items, 
+        savedForLater: state.savedForLater,
+        undoStack: state.undoStack,
+      }),
     }
   )
 )

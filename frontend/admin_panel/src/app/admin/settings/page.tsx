@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { 
   Settings, Store, CreditCard, Truck, Bell, Database, 
-  Check, X, RefreshCw, ShoppingBag, Info, Building 
+  Check, X, RefreshCw, ShoppingBag, Info, Building, Lock, Eye, EyeOff 
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -42,6 +42,77 @@ export default function SettingsPage() {
     accountName: 'MAD RUSH Store'
   })
 
+  const [passwordSettings, setPasswordSettings] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+
+  const handlePasswordChange = async () => {
+    setPasswordError('')
+    setPasswordSuccess(false)
+
+    // Validation
+    if (!passwordSettings.currentPassword || !passwordSettings.newPassword || !passwordSettings.confirmPassword) {
+      setPasswordError('All fields are required')
+      return
+    }
+
+    if (passwordSettings.newPassword !== passwordSettings.confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+
+    if (passwordSettings.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters')
+      return
+    }
+
+    setSaveStatus('saving')
+
+    try {
+      // TODO: Replace with actual API call
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          current_password: passwordSettings.currentPassword,
+          new_password: passwordSettings.newPassword
+        })
+      })
+
+      if (response.ok) {
+        setPasswordSuccess(true)
+        setPasswordSettings({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+        setSaveStatus('saved')
+        setTimeout(() => {
+          setPasswordSuccess(false)
+          setSaveStatus('idle')
+        }, 3000)
+      } else {
+        const errorData = await response.json()
+        setPasswordError(errorData.detail || 'Failed to change password')
+        setSaveStatus('error')
+      }
+    } catch (error) {
+      setPasswordError('An error occurred. Please try again.')
+      setSaveStatus('error')
+    }
+  }
+
   const handleSave = (section: string) => {
     setSaveStatus('saving')
     setTimeout(() => {
@@ -55,6 +126,7 @@ export default function SettingsPage() {
     { id: 'orders', label: 'Order Settings', icon: ShoppingBag },
     { id: 'shipping', label: 'Shipping', icon: Truck },
     { id: 'payment', label: 'Payments', icon: CreditCard },
+    { id: 'security', label: 'Security', icon: Lock },
     { id: 'system', label: 'System', icon: Database },
   ]
 
@@ -455,6 +527,144 @@ export default function SettingsPage() {
                     {saveStatus === 'saved' && <Check className="mr-2 h-4 w-4" />}
                     {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save Changes'}
                   </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Security Settings */}
+            {activeTab === 'security' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Security Settings</CardTitle>
+                  <CardDescription>Manage your account security and password</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Password Change Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Lock className="h-5 w-5 text-orange-500" />
+                        Change Password
+                      </h3>
+                      
+                      {passwordError && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                          <X className="h-5 w-5 text-red-600 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-red-900">Error</p>
+                            <p className="text-sm text-red-700">{passwordError}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {passwordSuccess && (
+                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                          <Check className="h-5 w-5 text-green-600 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-green-900">Success</p>
+                            <p className="text-sm text-green-700">Your password has been changed successfully</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="space-y-4">
+                        {/* Current Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Current Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showCurrentPassword ? 'text' : 'password'}
+                              value={passwordSettings.currentPassword}
+                              onChange={(e) => setPasswordSettings({...passwordSettings, currentPassword: e.target.value})}
+                              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              placeholder="Enter your current password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            >
+                              {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* New Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            New Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showNewPassword ? 'text' : 'password'}
+                              value={passwordSettings.newPassword}
+                              onChange={(e) => setPasswordSettings({...passwordSettings, newPassword: e.target.value})}
+                              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              placeholder="Enter your new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            >
+                              {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                          </div>
+                          <p className="mt-1 text-sm text-gray-500">Must be at least 8 characters</p>
+                        </div>
+
+                        {/* Confirm New Password */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Confirm New Password
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              value={passwordSettings.confirmPassword}
+                              onChange={(e) => setPasswordSettings({...passwordSettings, confirmPassword: e.target.value})}
+                              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                              placeholder="Confirm your new password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            >
+                              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <Button 
+                          onClick={handlePasswordChange}
+                          disabled={saveStatus === 'saving'}
+                          className="admin-btn-primary"
+                        >
+                          {saveStatus === 'saving' && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
+                          {saveStatus === 'saving' ? 'Changing Password...' : 'Change Password'}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Security Tips */}
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-blue-900 mb-2">Password Security Tips</p>
+                          <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                            <li>Use a strong password with at least 8 characters</li>
+                            <li>Include uppercase and lowercase letters, numbers, and symbols</li>
+                            <li>Don't reuse passwords from other accounts</li>
+                            <li>Change your password regularly</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}

@@ -19,7 +19,7 @@ class AdminApiClient {
   constructor(config: AdminApiConfig) {
     this.apiUrl = config.apiUrl
     this.adminApiUrl = `${this.apiUrl}/api/admin`
-    this.productApiUrl = `${this.apiUrl}/products`
+    this.productApiUrl = `${this.apiUrl}/api/products`
     this.authApiUrl = `${this.apiUrl}/api/auth`
   }
 
@@ -97,7 +97,7 @@ class AdminApiClient {
 
   // Product CRUD operations
   async getProducts(): Promise<ApiResponse<Product[]>> {
-    return this.request<Product[]>(`${this.productApiUrl}/products/`)
+    return this.request<Product[]>(`${this.productApiUrl}/`)
   }
 
   async createProduct(productData: {
@@ -143,42 +143,96 @@ class AdminApiClient {
     })
   }
 
+  // Category CRUD operations
+  async getCategories(includeInactive: boolean = false): Promise<ApiResponse<any[]>> {
+    const params = includeInactive ? '?include_inactive=true' : ''
+    return this.request<any[]>(`${this.adminApiUrl}/categories/${params}`)
+  }
+
+  async createCategory(categoryData: {
+    name: string
+    slug?: string
+    description?: string
+    parent_id?: number
+  }): Promise<ApiResponse<any>> {
+    return this.request<any>(`${this.adminApiUrl}/categories/`, {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    })
+  }
+
+  async updateCategory(
+    categoryId: number,
+    categoryData: {
+      name?: string
+      slug?: string
+      description?: string
+      parent_id?: number
+      is_active?: boolean
+    }
+  ): Promise<ApiResponse<any>> {
+    return this.request<any>(`${this.adminApiUrl}/categories/${categoryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    })
+  }
+
+  async deleteCategory(categoryId: number): Promise<ApiResponse<void>> {
+    return this.request<void>(`${this.adminApiUrl}/categories/${categoryId}`, {
+      method: 'DELETE',
+    })
+  }
+
   // Image upload with security validation
   async uploadImage(file: File): Promise<ApiResponse<{ image_url: string }>> {
     // Validate file type and size
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!allowedTypes.includes(file.type)) {
       return {
         success: false,
-        error: 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.'
-      }
+        error: 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.',
+      };
     }
 
     if (file.size > maxSize) {
       return {
         success: false,
-        error: 'File too large. Maximum size is 10MB.'
-      }
+        error: 'File too large. Maximum size is 10MB.',
+      };
     }
 
-    const formData = new FormData()
-    formData.append('file', file)
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      const response = await fetch(`${this.adminApiUrl}/admin/upload-image/`, {
+      const response = await fetch(`${this.adminApiUrl}/upload-image/`, {
         method: 'POST',
-        credentials: 'include', // Include cookies
+        credentials: 'include',
         body: formData,
-      })
+      });
 
-      return this.handleResponse(response)
+      if (!response.ok) {
+        let error = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          error = errorData.detail || errorData.message || error;
+        } catch (e) {
+          // Not a JSON response
+        }
+        console.error('Image upload failed:', error);
+        return { success: false, error };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
     } catch (error) {
+      console.error('Image upload request failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed'
-      }
+        error: error instanceof Error ? error.message : 'Upload failed',
+      };
     }
   }
 
