@@ -8,7 +8,9 @@ from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Order, Payment
-from services.paystack_service import paystack_service
+from models import Order, Payment
+from utils.payment import paystack_client, process_payment, verify_payment as verify_payment_util
+from config import settings
 from datetime import datetime
 import logging
 import uuid
@@ -106,7 +108,7 @@ async def initialize_payment(
             )
         
         # Set callback URL
-        callback_url = request.callback_url or f"http://localhost:3000/payment/callback"
+        callback_url = request.callback_url or f"{settings.FRONTEND_URL}/payment/callback"
         
         # Prepare metadata
         metadata = request.metadata or {}
@@ -114,13 +116,13 @@ async def initialize_payment(
             "order_id": order.id,
             "customer_name": order.customer_name,
             "customer_phone": order.customer_phone,
-            "cancel_action": f"http://localhost:3000/orders/{order.id}"
+            "cancel_action": f"{settings.FRONTEND_URL}/orders/{order.id}"
         })
         
         # Initialize transaction with Paystack
-        result = paystack_service.initialize_transaction(
+        result = process_payment(
             email=request.email,
-            amount=request.amount,
+            amount=request.amount / 100,  # Convert kobo to naira for the utility function
             reference=reference,
             callback_url=callback_url,
             metadata=metadata
@@ -182,7 +184,7 @@ async def verify_payment(
     """
     try:
         # Verify with Paystack
-        result = paystack_service.verify_transaction(reference)
+        result = verify_payment_util(reference)
         
         if not result["status"]:
             return VerifyPaymentResponse(
@@ -298,7 +300,7 @@ async def payment_callback(
                     "message": "Payment successful",
                     "reference": reference,
                     "order_id": order_id,
-                    "redirect_url": f"http://localhost:3000/orders/{order_id}/success"
+                    "redirect_url": f"{settings.FRONTEND_URL}/orders/{order_id}/success"
                 }
         
         # Payment failed or not found
@@ -306,7 +308,7 @@ async def payment_callback(
             "status": "failed",
             "message": "Payment verification failed",
             "reference": reference,
-            "redirect_url": f"http://localhost:3000/payment/failed?ref={reference}"
+            "redirect_url": f"{settings.FRONTEND_URL}/payment/failed?ref={reference}"
         }
         
     except Exception as e:
@@ -314,7 +316,7 @@ async def payment_callback(
         return {
             "status": "error",
             "message": str(e),
-            "redirect_url": "http://localhost:3000/payment/error"
+            "redirect_url": f"{settings.FRONTEND_URL}/payment/error"
         }
 
 
@@ -343,7 +345,7 @@ async def payment_webhook(
             )
         
         # Verify signature
-        if not paystack_service.verify_webhook_signature(body, signature):
+        if not paystack_client.verify_webhook_signature(body, signature):
             logger.warning("Invalid webhook signature")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -354,7 +356,7 @@ async def payment_webhook(
         event_data = await request.json()
         
         # Process event
-        result = paystack_service.process_webhook_event(event_data)
+        result = paystack_client.process_webhook_event(event_data)
         
         # Handle charge.success event
         if event_data.get("event") == "charge.success":

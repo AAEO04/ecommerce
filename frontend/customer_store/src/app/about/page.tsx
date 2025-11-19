@@ -1,108 +1,164 @@
 import Image from 'next/image'
+import { Flame, CheckCircle2, Heart, Rocket, Star, Zap, Target } from 'lucide-react'
+
+const stats = [
+  { label: 'Drops shipped', value: '120K+', accent: 'text-electric-volt-green' },
+  { label: 'Rush community', value: '85 countries', accent: 'text-accent-red-500' },
+  { label: 'Avg. fulfilment', value: '24H', accent: 'text-accent-purple-600' },
+]
+
+const pillars = [
+  {
+    title: 'Voltage Design Lab',
+    description: 'Matte textures, reflective seams, limited-run pigment baths. Engineered chaos you can wear.',
+    icon: Flame,
+    accent: 'text-accent-red-500'
+  },
+  {
+    title: 'Trust Over Hype',
+    description: 'Encrypted checkout, lightning-fast logistics and human support that actually responds.',
+    icon: CheckCircle2,
+    accent: 'text-electric-volt-green'
+  },
+  {
+    title: 'Community Pulse',
+    description: 'Drops co-created with stylists, dancers, riders, coders—the people moving culture forward.',
+    icon: Heart,
+    accent: 'text-accent-purple-600'
+  }
+]
+
+const timeline = [
+  { year: '2019', title: 'Prototype Days', copy: 'Garage screen prints, pop-up raves, and a handful of midnight orders.' },
+  { year: '2021', title: 'Kinetic Chaos', copy: 'First “Rush Lab” capsule sells out in 3 minutes. International shipping goes live.' },
+  { year: '2024', title: 'Hyper Rush Era', copy: 'Integrated fit tech, encrypted cart flows, sensory packaging, and a global crew.' },
+]
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-white py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="mb-8 flex justify-center">
-            <Image src="/brand-circle.png" alt="Mad Rush Logo" width={400} height={400} className="w-80 h-auto" />
-          </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">About MAD RUSH</h1>
-          <p className="text-2xl text-gray-700 italic mb-4">No Chills just Mad Rush</p>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Fast fashion, high energy, zero chill. We're redefining streetwear culture.
-          </p>
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 hero-grid opacity-20" aria-hidden="true" />
+      <div className="absolute inset-0 hero-noise opacity-30" aria-hidden="true" />
 
-      {/* Our Story Section */}
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-          <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
-              MAD RUSH was born from the streets, inspired by the energy of urban culture and the boldness of modern streetwear. 
-              We believe in movement, hype, and making every drop count.
-            </p>
-            <p className="text-lg text-gray-700 mb-4 leading-relaxed">
-              Our collections are designed to help you express your unique personality and keep up with the rush of life. 
-              From bold graphics to vibrant colors, every piece tells a story of energy and passion.
-            </p>
-            <p className="text-lg text-gray-700 leading-relaxed">
-              We're not just selling clothes – we're building a community of individuals who live life at full speed, 
-              with no chills and all the rush.
-            </p>
+      <div className="relative z-10 space-y-24 py-20">
+        {/* Hero */}
+        <section className="container mx-auto px-4">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="space-y-6">
+              <p className="inline-flex items-center gap-3 rounded-full border border-white/30 px-5 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
+                <Zap className="h-4 w-4 text-electric-volt-green" />
+                Mad Rush Collective
+              </p>
+              <h1 className="text-5xl md:text-6xl font-black leading-[1.05]">
+                Built for velocity. Fueled by community. No chills, just RUSH.
+              </h1>
+              <p className="text-lg text-white/70">
+                We’re a Lagos-born, globally wired studio crafting kinetic streetwear with encrypted experiences, tactile fabrics, and limited-run drip that mirrors movement.
+              </p>
+              <div className="flex flex-wrap gap-6">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="space-y-1">
+                    <p className={`text-3xl font-black ${stat.accent}`}>{stat.value}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/60">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative overflow-hidden rounded-[36px] border border-white/10 bg-gradient-to-br from-neutral-900 via-black to-neutral-900 p-10">
+              <div className="absolute inset-0 opacity-30 mix-blend-screen">
+                <Image src="/brand-circle.png" alt="Mad Rush" fill className="object-cover" />
+              </div>
+              <div className="relative space-y-4">
+                <p className="text-sm uppercase tracking-[0.5em] text-white/50">Drop 07 dossier</p>
+                <p className="text-3xl font-bold">“When the city doesn’t sleep, neither do our ideas.”</p>
+                <p className="text-white/70 text-sm">— Creative Director, MAD RUSH</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-black rounded-2xl p-8 text-white">
-            <h3 className="text-3xl font-bold mb-4">Why MAD RUSH?</h3>
-            <ul className="space-y-4"> 
-              <li className="flex items-start">
-                <span className="text-2xl mr-3">🔥</span>
-                <div>
-                  <strong className="block text-red-500 text-xl">Bold Designs</strong>
-                  <p className="text-gray-100">Eye-catching graphics that make a statement</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <span className="text-2xl mr-3"> ✔️</span>
-                <div>
-                  <strong className="block text-purple-500 text-xl">Premium Quality</strong>
-                  <p className="text-gray-100">Durable materials built to last</p>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <span className="text-2xl mr-3">💚</span>
-                <div>
-                  <strong className="block text-green-500 text-xl">Community First</strong>
-                  <p className="text-gray-100">Join a movement of passionate individuals</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-        </div>
+        </section>
 
-        {/* Mission Section */}
-        <div className="bg-black text-white rounded-2xl p-12 mb-16">
-          <h2 className="text-4xl font-bold mb-6 text-center">Our Mission</h2>
-          <p className="text-xl text-gray-300 text-center max-w-3xl mx-auto leading-relaxed">
-            To empower everyone to move fast, look bold, and live with no chills. 
-            We're here to build trust through quality, design, and a friction-free shopping experience 
-            that keeps you ahead of the curve.
-          </p>
-        </div>
+        {/* Story + Pillars */}
+        <section className="container mx-auto px-4">
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-6">
+              <h2 className="text-4xl font-black">From underground signal to kinetic house.</h2>
+              <p className="text-white/70 text-lg">
+                MAD RUSH started as a rogue run of tees at midnight pop-ups. We layered reflective foils by hand, shipped packages from bike messengers, and laced each order with hand-written hype notes.
+              </p>
+              <p className="text-white/60">
+                Today, we operate a distributed design lab that merges tactile craft with digital rituals—3D draping, encrypted checkout motions, scent-enhanced packaging, and verified provenance for every drop.
+              </p>
+            </div>
+            <div className="space-y-4">
+              {pillars.map((pillar) => (
+                <div key={pillar.title} className="flex gap-4 rounded-2xl border border-white/10 bg-neutral-950/80 p-5">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 ${pillar.accent}`}>
+                    <pillar.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">{pillar.title}</h3>
+                    <p className="text-white/70">{pillar.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        {/* Values Section */}
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🚀</span>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Innovation</h3>
-            <p className="text-gray-700">
-              Constantly pushing boundaries with fresh designs and cutting-edge styles
+        {/* Mission */}
+        <section className="container mx-auto px-4">
+          <div className="rounded-[40px] border border-white/10 bg-gradient-to-r from-neutral-950 via-black to-neutral-900 p-12 text-center">
+            <p className="inline-flex items-center justify-center gap-3 rounded-full border border-white/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
+              <Target className="h-4 w-4 text-accent-purple-500" />
+              Mission brief
+            </p>
+            <h2 className="mt-6 text-4xl md:text-5xl font-black">Empower the rush.</h2>
+            <p className="mt-4 text-white/70 text-lg max-w-3xl mx-auto">
+              We build frictionless retail and high-energy garments for people who move fast. Every interaction—from tap-to-cart animations to the scent inside the mailer—should feel like a performance.
             </p>
           </div>
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">❤️</span>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Passion</h3>
-            <p className="text-gray-700">
-              Every piece is crafted with love and attention to detail
-            </p>
+        </section>
+
+        {/* Timeline */}
+        <section className="container mx-auto px-4">
+          <h3 className="text-2xl font-semibold mb-8 uppercase tracking-[0.3em] text-white/60">Glitch timeline</h3>
+          <div className="grid gap-6 md:grid-cols-3">
+            {timeline.map((item) => (
+              <div key={item.year} className="rounded-3xl border border-white/10 bg-neutral-950/80 p-6">
+                <p className="text-electric-volt-green text-sm tracking-[0.4em]">{item.year}</p>
+                <h4 className="mt-3 text-xl font-semibold">{item.title}</h4>
+                <p className="mt-2 text-white/70 text-sm">{item.copy}</p>
+              </div>
+            ))}
           </div>
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🌟</span>
+        </section>
+
+        {/* Values */}
+        <section className="container mx-auto px-4">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-black">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-electric-volt-green/60">
+                <Rocket className="h-8 w-8 text-black" />
+              </div>
+              <h3 className="text-2xl font-bold">Innovation loops</h3>
+              <p className="text-black/70">Rapid prototyping, community-sourced samples, and sensory packaging cues.</p>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">Authenticity</h3>
-            <p className="text-gray-700">
-              Stay true to yourself and express your unique style
-            </p>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-black">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-red-500/70">
+                <Heart className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold">Obsessive passion</h3>
+              <p className="text-black/70">Every seam, CTA, and soundtrack is tuned for emotional velocity.</p>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-8 text-black">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-purple-600/70">
+                <Star className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold">Radical authenticity</h3>
+              <p className="text-black/70">We don’t chase trends—we scale subcultures with transparency.</p>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

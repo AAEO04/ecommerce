@@ -1,11 +1,3 @@
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  images: { image_url: string }[];
-}
-
 import { CONFIG } from '@/lib/config';
 import { fetchWithRetry } from '@/lib/fetchWithRetry';
 
@@ -16,13 +8,31 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  images: { image_url: string }[];
+  images: Array<{
+    image_url: string;
+    alt_text?: string;
+    display_order?: number;
+    is_primary?: boolean;
+  }>;
+  category?: string;
   variants: { price: number }[];
+}
+
+export interface BestSellerProduct {
+  product: Product;
+  unitsSold: number;
+  revenue: number;
 }
 
 export async function fetchProducts(): Promise<Product[]> {
   return fetchWithRetry(`${API_BASE}/api/products`, {
     next: { revalidate: 60 }, // Add revalidation
+  });
+}
+
+export async function fetchBestSellers(range: '7d' | '30d' | '90d' = '30d'): Promise<BestSellerProduct[]> {
+  return fetchWithRetry(`${API_BASE}/api/products/best-sellers?range=${range}`, {
+    next: { revalidate: 120 },
   });
 }
 

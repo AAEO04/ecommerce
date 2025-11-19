@@ -92,7 +92,7 @@ def create_product(
     for image_data in product_data.images:
         image = models.ProductImage(
             product_id=new_product.id,
-            image_url=image_data.image_url,
+            image_url=str(image_data.image_url),
             alt_text=image_data.alt_text,
             display_order=image_data.display_order,
             is_primary=image_data.is_primary

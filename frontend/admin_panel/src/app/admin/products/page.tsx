@@ -131,7 +131,7 @@ export default function AdminProducts() {
                       {product.variants?.reduce((total, v) => total + v.stock_quantity, 0) || 0} in stock
                     </span>
                     <span className="font-semibold text-gray-900">
-                      ${product.variants?.[0]?.price || 0}
+                      ₦{Number(product.variants?.[0]?.price ?? 0).toFixed(2)}
                     </span>
                   </div>
                 </CardContent>

@@ -1,5 +1,5 @@
 // @/lib/animations.ts
-import { Variants } from "framer-motion";
+import { Variants, Transition } from "framer-motion";
 
 export const cardVariants: Variants = {
   offscreen: {
@@ -23,7 +23,7 @@ export const pageVariants = {
   exit: { opacity: 0, y: -20 },
 };
 
-export const pageTransition = {
+export const pageTransition: Transition = {
   type: 'tween',
   ease: 'anticipate',
   duration: 0.5,

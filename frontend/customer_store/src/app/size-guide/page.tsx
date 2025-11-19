@@ -101,7 +101,7 @@ export default function SizeGuidePage() {
                 </tr>
                 <tr className="hover:bg-gray-50">
                   <td className="border border-gray-300 px-4 py-3 font-semibold">M</td>
-                  <td className="border border-gray-300 px-4 py-3">34-36</td>
+                  <td className="border border-gray-700 px-4 py-3">34-36</td>
                   <td className="border border-gray-300 px-4 py-3">27</td>
                   <td className="border border-gray-300 px-4 py-3">16</td>
                 </tr>

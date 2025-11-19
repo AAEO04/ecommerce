@@ -46,6 +46,14 @@ class ProductResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class BestSellerProduct(BaseModel):
+    product: ProductResponse
+    unitsSold: int
+    revenue: float
+
+
+
 class ProductVariantCreate(BaseModel):
     size: str
     color: Optional[str] = None
@@ -175,6 +183,13 @@ class CheckoutRequest(BaseModel):
     def validate_notes(cls, v):
         if v:
             return SecureValidators.validate_string_length(v, constants.NOTES_MIN_LENGTH, constants.NOTES_MAX_LENGTH)
+        return v
+    
+    @validator('payment_method')
+    def validate_payment_method(cls, v):
+        allowed_methods = ['card']
+        if v not in allowed_methods:
+            raise ValueError(f'Payment method must be one of: {", ".join(allowed_methods)}')
         return v
 
 class PaymentRequest(BaseModel):

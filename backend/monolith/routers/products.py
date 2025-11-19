@@ -1,9 +1,12 @@
 # file: routers/products.py
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks, Request
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy import or_, func, desc
 from typing import List, Optional
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 import models
 import schemas
@@ -100,6 +103,62 @@ def read_products(
     
     products = query.offset(skip).limit(limit).all()
     return products
+
+
+@router.get("/best-sellers", response_model=List[schemas.BestSellerProduct])
+@cached("best_sellers", expire=constants.CACHE_PRODUCT_TTL // 2)
+def get_best_sellers(
+    range: str = Query("30d", regex="^(7d|30d|90d)$"),
+    limit: int = Query(6, ge=1, le=12),
+    db: Session = Depends(get_db)
+):
+    """Public endpoint that surfaces the top-selling products for the storefront."""
+
+    days = int(range[:-1])
+    start_date = datetime.now() - timedelta(days=days)
+
+    sales_cte = (
+        db.query(
+            models.Product.id.label("product_id"),
+            func.sum(models.OrderItem.quantity).label("units_sold"),
+            func.sum(models.OrderItem.total_price).label("revenue"),
+        )
+        .join(models.ProductVariant, models.ProductVariant.product_id == models.Product.id)
+        .join(models.OrderItem, models.OrderItem.variant_id == models.ProductVariant.id)
+        .join(models.Order, models.Order.id == models.OrderItem.order_id)
+        .filter(
+            models.Order.payment_status == "completed",
+            models.Order.created_at >= start_date,
+            models.Product.is_active == True,
+        )
+        .group_by(models.Product.id)
+        .order_by(desc("revenue"))
+        .limit(limit)
+        .cte("best_sellers")
+    )
+
+    products = (
+        db.query(models.Product, sales_cte.c.units_sold, sales_cte.c.revenue)
+        .join(sales_cte, models.Product.id == sales_cte.c.product_id)
+        .options(
+            joinedload(models.Product.variants),
+            joinedload(models.Product.images),
+        )
+        .order_by(desc(sales_cte.c.revenue))
+        .all()
+    )
+
+    best_sellers: List[schemas.BestSellerProduct] = []
+    for product, units_sold, revenue in products:
+        best_sellers.append(
+            schemas.BestSellerProduct(
+                product=schemas.ProductResponse.from_orm(product),
+                unitsSold=int(units_sold or 0),
+                revenue=float(revenue or 0),
+            )
+        )
+
+    return best_sellers
 
 @router.get("/{product_id}", response_model=schemas.ProductResponse)
 @cached("product", expire=constants.CACHE_PRODUCT_TTL, key_builder=lambda product_id, **kwargs: f"product:{product_id}")

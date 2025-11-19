@@ -38,7 +38,7 @@ export type CartItem = {
   productId?: number
   variant_id?: number
   name?: string
-  price?: number
+  price: number
   quantity: number
   image?: string
   savedForLater?: boolean
@@ -65,6 +65,23 @@ type CartState = {
   getTotal: () => number
 }
 
+// Migration function to handle existing cart items with undefined prices
+const migrateCartData = (state: any): CartState => {
+  if (!state) return { items: [], savedForLater: [], undoStack: [] }
+  
+  const migrateItems = (items: any[]): CartItem[] => 
+    items.map(item => ({
+      ...item,
+      price: item.price ?? 0, // Ensure price is never undefined
+    }))
+
+  return {
+    items: migrateItems(state.items || []),
+    savedForLater: migrateItems(state.savedForLater || []),
+    undoStack: state.undoStack || [],
+  }
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -86,12 +103,14 @@ export const useCartStore = create<CartState>()(
           }
           
           // Only create new item if it doesn't exist
+          const fallbackPrice = product.price ?? product.variants?.[0]?.price ?? 0
+
           const newItem: CartItem = {
             id: `product-${product.id}`,
             productId: product.id,
             variant_id: product.id,
             name: product.name,
-            price: product.price,
+            price: fallbackPrice,
             quantity: 1,
             image: product.images?.[0]?.image_url,
             savedForLater: false,
@@ -167,11 +186,14 @@ export const useCartStore = create<CartState>()(
       },
       clear: () => set({ items: [], savedForLater: [], undoStack: [] }),
       getTotalCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-      getTotal: () => get().items.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0),
+      getTotal: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     }),
     {
       name: 'cart-storage',
       storage: encryptedStorage,
+      migrate: (persistedState: any, version: number) => {
+        return migrateCartData(persistedState)
+      },
       partialize: (state) => ({ 
         items: state.items, 
         savedForLater: state.savedForLater,

@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, Phone, MapPin, Send } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, MessageSquare, Shield, Zap, Clock } from 'lucide-react'
+
+const signalStats = [
+  { label: 'Average response', value: '12 min', accent: 'text-electric-volt-green' },
+  { label: 'Support agents', value: '24/7', accent: 'text-accent-red-500' },
+  { label: 'Global hubs', value: '5 cities', accent: 'text-accent-purple-600' },
+]
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -16,14 +22,13 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
-    // Simulate form submission
+
     setTimeout(() => {
-      setSubmitMessage('Thank you for your message! We\'ll get back to you soon.')
+      setSubmitMessage('Signal received. The crew will hit you back shortly.')
       setFormData({ name: '', email: '', subject: '', message: '' })
       setIsSubmitting(false)
       setTimeout(() => setSubmitMessage(''), 5000)
-    }, 1000)
+    }, 1200)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,81 +39,77 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">Get In Touch</h1>
-          <p className="text-2xl text-gray-300 italic mb-4">No Chills just Mad Rush</p>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Got questions, feedback, or just want to say hey? We're here for the rush.
-          </p>
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 hero-grid opacity-10" aria-hidden="true" />
+      <div className="absolute inset-0 hero-noise opacity-30" aria-hidden="true" />
 
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Send Us a Message</h2>
-            
+      {/* Hero */}
+      <section className="relative z-10 border-b border-white/10 py-20">
+        <div className="container mx-auto px-4 space-y-10">
+          <div className="space-y-6 text-center">
+            <p className="inline-flex items-center gap-3 rounded-full border border-white/30 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
+              <Zap className="h-4 w-4 text-electric-volt-green" />
+              Mad Rush Support Line
+            </p>
+            <h1 className="text-5xl md:text-6xl font-black leading-[1.05]">
+              Drop us a signal. We move as fast as you do.
+            </h1>
+            <p className="text-lg text-white/70 max-w-3xl mx-auto">
+              Cart help, collab requests, rush order tracking—whatever you need, our ops lab is online. Pick your channel and we’ll answer with zero chill energy.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {signalStats.map((stat) => (
+              <div key={stat.label} className="rounded-3xl border border-white/10 bg-neutral-950/80 p-6 text-center">
+                <p className={`text-3xl font-black ${stat.accent}`}>{stat.value}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.3em] text-white/60">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Grid */}
+      <section className="relative z-10 py-16">
+        <div className="container mx-auto px-4 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          {/* Form */}
+          <div className="rounded-[32px] border border-white/10 bg-neutral-950/90 p-8 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
+            <div className="space-y-3 mb-8">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50">
+                <MessageSquare className="h-4 w-4 text-electric-volt-green" />
+                Inbox
+              </p>
+              <h2 className="text-3xl font-bold">Launch a message</h2>
+              <p className="text-white/60">Give us the drop details—our ops lead will respond faster than your cart timer.</p>
+            </div>
+
             {submitMessage && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+              <div className="mb-6 rounded-2xl border border-electric-volt-green/40 bg-electric-volt-green/10 px-4 py-3 text-electric-volt-green">
                 {submitMessage}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Name *
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Your name"
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {['name', 'email', 'subject'].map((field) => (
+                <div key={field}>
+                  <label htmlFor={field} className="text-xs uppercase tracking-[0.35em] text-white/50">
+                    {field} *
+                  </label>
+                  <input
+                    id={field}
+                    name={field}
+                    type={field === 'email' ? 'email' : 'text'}
+                    value={formData[field as keyof typeof formData]}
+                    onChange={handleChange}
+                    required
+                    className="mt-2 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-white outline-none transition focus:border-electric-volt-green"
+                    placeholder={field === 'subject' ? 'Drop details' : `Your ${field}`}
+                  />
+                </div>
+              ))}
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="you@email.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject *
-                </label>
-                <input
-                  id="subject"
-                  name="subject"
-                  type="text"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="What's this about?"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="message" className="text-xs uppercase tracking-[0.35em] text-white/50">
                   Message *
                 </label>
                 <textarea
@@ -118,92 +119,100 @@ export default function ContactPage() {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Type your message here..."
+                  className="mt-2 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-white outline-none transition focus:border-electric-volt-green"
+                  placeholder="What do you need help with?"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-green-500 to-purple-500 text-white font-bold py-4 px-6 rounded-lg hover:from-green-600 hover:to-purple-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-electric-volt-green bg-electric-volt-green px-6 py-4 text-sm font-semibold uppercase tracking-[0.35em] text-black transition hover:-translate-y-1 disabled:opacity-60"
               >
-                {isSubmitting ? 'Sending...' : (
+                {isSubmitting ? 'SENDING...' : (
                   <>
-                    <Send className="h-5 w-5" />
-                    Send Message
+                    <Send className="h-4 w-4" />
+                    Dispatch
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* Contact Information */}
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Contact Information</h2>
-            
-            <div className="space-y-6 mb-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-6 w-6 text-green-600" />
+          {/* Info */}
+          <div className="space-y-6">
+            <div className="rounded-[32px] border border-white/10 bg-neutral-950/70 p-8">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50">
+                <Shield className="h-4 w-4 text-accent-purple-500" />
+                Command center
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold">Talk to a human, not a bot.</h3>
+              <p className="mt-2 text-white/70">
+                Select your path—the ops team routes requests based on priority, region, and drop urgency.
+              </p>
+              <div className="mt-6 space-y-4">
+                <div className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-electric-volt-green/20 text-electric-volt-green">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">Email</p>
+                    <a href="mailto:hello@madrush.com" className="text-lg font-semibold text-white hover:text-electric-volt-green">
+                      hello@madrush.com
+                    </a>
+                    <p className="text-sm text-white/60">Responses average 12 minutes</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                  <a href="mailto:hello@madrush.com" className="text-gray-600 hover:text-green-600">
-                    hello@madrush.com
-                  </a>
-                  <p className="text-sm text-gray-500 mt-1">We'll respond within 24 hours</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Phone className="h-6 w-6 text-purple-600" />
+                <div className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-red-500/20 text-accent-red-500">
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">Hotline</p>
+                    <a href="tel:+23409152458280" className="text-lg font-semibold text-white hover:text-accent-red-500">
+                      +234 0915 245 8280
+                    </a>
+                    <p className="text-sm text-white/60">Priority support for live drops</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                  <a href="tel:+15551234567" className="text-gray-600 hover:text-purple-600">
-                    +23409152458280
-                  </a>
-                  <p className="text-sm text-gray-500 mt-1">Mon-Fri, 9am-6pm EST</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <MapPin className="h-6 w-6 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Location</h3>
-                  <p className="text-gray-600">
-                    Lagos <br />
-                    Nigeria
-                  </p>
+                <div className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-purple-600/20 text-accent-purple-600">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.35em] text-white/50">Studio</p>
+                    <p className="text-lg font-semibold text-white">Lagos, Nigeria</p>
+                    <p className="text-sm text-white/60">Open studio tours every last Friday</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Business Hours */}
-            <div className="bg-gray-900 text-white rounded-2xl p-6">
-              <h3 className="text-xl font-bold mb-4">Business Hours</h3>
-              <div className="space-y-2 text-gray-300">
-                <div className="flex justify-between">
-                  <span>Monday - Friday</span>
-                  <span className="font-semibold">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Saturday</span>
-                  <span className="font-semibold">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Sunday</span>
-                  <span className="font-semibold">Closed</span>
-                </div>
+            <div className="rounded-[32px] border border-white/10 bg-neutral-950/70 p-8">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-white/50">
+                <Clock className="h-4 w-4 text-electric-volt-green" />
+                Operating window
+              </p>
+              <div className="mt-4 space-y-2 text-white/70">
+                {[{
+                  label: 'Monday - Friday', value: '09:00 - 22:00 WAT'
+                }, {
+                  label: 'Saturday', value: '10:00 - 18:00 WAT'
+                }, {
+                  label: 'Sunday', value: 'Emergencies only'
+                }].map((slot) => (
+                  <div key={slot.label} className="flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
+                    <span>{slot.label}</span>
+                    <span className="font-semibold text-white">{slot.value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

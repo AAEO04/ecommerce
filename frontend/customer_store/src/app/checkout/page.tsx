@@ -18,7 +18,7 @@ export default function CheckoutPage() {
   const items = useCartStore((s) => s.items)
   const clear = useCartStore((s) => s.clear)
   const getTotal = useCartStore((s) => s.getTotal)
-  
+
   const [currentStep, setCurrentStep] = useState<CheckoutStep>(1)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderId, setOrderId] = useState<number | null>(null)
   const [showPayment, setShowPayment] = useState(false)
-  
+
   const total = getTotal()
   const shippingFee = 0
   const grandTotal = total
@@ -54,7 +54,6 @@ export default function CheckoutPage() {
     if (!address) newErrors.address = 'Address is required'
     if (!city) newErrors.city = 'City is required'
     if (!state) newErrors.state = 'State is required'
-    if (!zipCode) newErrors.zipCode = 'ZIP code is required'
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -66,7 +65,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true)
 
     const fullAddress = `${address}, ${city}, ${state} ${zipCode}`
-    
+
     const payload: CheckoutPayload = {
       cart: items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
       customer_name: name,
@@ -78,7 +77,7 @@ export default function CheckoutPage() {
 
     try {
       const res = await checkout(payload)
-      
+
       // Store order ID and show payment
       if (res && res.order_id) {
         setOrderId(res.order_id)
@@ -117,347 +116,408 @@ export default function CheckoutPage() {
     { number: 3, title: 'Review' },
   ]
 
+  const fieldClass = (hasError?: boolean) =>
+    [
+      'w-full rounded-2xl border bg-black/40 px-4 py-3 text-sm font-medium tracking-wide text-white placeholder:text-white/30 transition focus:outline-none focus:ring-2 focus:ring-electric-volt-green/70',
+      hasError ? 'border-hot-pink/70' : 'border-white/15',
+    ].join(' ')
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold mb-6">Checkout</h1>
-      
-      {success ? (
-        <div className="text-center py-12" aria-live="polite" role="status">
-          <h2 className="text-2xl font-bold text-green-600 mb-2">Order Placed Successfully!</h2>
-          <p className="text-gray-600">Redirecting to order confirmation...</p>
-        </div>
-      ) : (
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main checkout form */}
-          <div className="lg:col-span-2">
-            {/* Progress indicator */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
-                {steps.map((step, index) => (
-                  <div key={step.number} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center flex-1">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                          currentStep >= step.number
-                            ? 'bg-accent-green text-white'
-                            : 'bg-neutral-800 text-neutral-400'
-                        }`}
-                      >
-                        {currentStep > step.number ? (
-                          <Check className="h-5 w-5" />
-                        ) : (
-                          step.number
-                        )}
-                      </div>
-                      <span className="text-xs mt-2 text-neutral-400">{step.title}</span>
-                    </div>
-                    {index < steps.length - 1 && (
-                      <div
-                        className={`h-1 flex-1 mx-2 transition-colors ${
-                          currentStep > step.number ? 'bg-accent-green' : 'bg-neutral-800'
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
+    <div className="relative overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 hero-grid opacity-10" aria-hidden />
+      <div className="absolute inset-0 hero-noise opacity-15" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-4 py-14">
+        <header className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/60">Checkout · Mission clearance</p>
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-black uppercase tracking-[0.2em]">Lock the drop</h1>
+              <p className="text-white/60">
+                Verify your signal, secure the route, and ignite payment to deploy {items.length}{' '}
+                {items.length === 1 ? 'item' : 'items'}.
+              </p>
             </div>
+            <div className="rounded-full border border-white/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/70">
+              Live total · {formatNGN(grandTotal)}
+            </div>
+          </div>
+        </header>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Step 1: Shipping Info */}
-              {currentStep === 1 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
-                  
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-neutral-300 mb-1">Full name</label>
-                    <input 
-                      id="name"
-                      required 
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)} 
-                      placeholder="John Doe" 
-                      className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.name ? 'border-red-500' : 'border-neutral-700'}`} 
-                    />
-                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-1">Email</label>
-                      <input 
-                        id="email"
-                        required 
-                        type="email"
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        placeholder="john@example.com" 
-                        className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.email ? 'border-red-500' : 'border-neutral-700'}`} 
-                      />
-                      {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+        {success ? (
+          <div
+            className="mt-12 rounded-[32px] border border-electric-volt-green/30 bg-gradient-to-br from-black via-black/80 to-electric-volt-green/5 p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            aria-live="polite"
+            role="status"
+          >
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-electric-volt-green/50">
+              <Check className="h-10 w-10 text-electric-volt-green" />
+            </div>
+            <p className="text-xs uppercase tracking-[0.4em] text-electric-volt-green">Order secured</p>
+            <h2 className="mt-3 text-3xl font-black">Transmission locked in</h2>
+            <p className="mt-2 text-white/60">Redirecting to confirmation...</p>
+          </div>
+        ) : (
+          <div className="mt-12 grid gap-8 lg:grid-cols-[1.75fr_1fr]">
+            <div className="space-y-8">
+              <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-[0_20px_40px_rgba(0,0,0,0.35)]">
+                <div className="flex flex-wrap items-center gap-4">
+                  {steps.map((step, index) => (
+                    <div key={step.number} className="flex items-center">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-full border-2 text-base font-semibold transition ${currentStep >= step.number
+                              ? 'border-electric-volt-green text-electric-volt-green'
+                              : 'border-white/15 text-white/40'
+                            }`}
+                        >
+                          {currentStep > step.number ? <Check className="h-5 w-5" /> : step.number}
+                        </div>
+                        <div className="text-xs uppercase tracking-[0.35em] text-white/60">{step.title}</div>
+                      </div>
+                      {index < steps.length - 1 && (
+                        <div className="mx-4 hidden h-px w-14 bg-white/20 sm:block" aria-hidden />
+                      )}
                     </div>
-
-                    <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-neutral-300 mb-1">Phone</label>
-                      <input 
-                        id="phone"
-                        required 
-                        value={phone} 
-                        onChange={(e) => setPhone(e.target.value)} 
-                        placeholder="08012345678" 
-                        className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.phone ? 'border-red-500' : 'border-neutral-700'}`} 
-                      />
-                      {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="address" className="block text-sm font-medium text-neutral-300 mb-1">Street address</label>
-                    <input 
-                      id="address"
-                      required 
-                      value={address} 
-                      onChange={(e) => setAddress(e.target.value)} 
-                      placeholder="123 Main Street" 
-                      className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.address ? 'border-red-500' : 'border-neutral-700'}`} 
-                    />
-                    {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-neutral-300 mb-1">City</label>
-                      <input 
-                        id="city"
-                        required 
-                        value={city} 
-                        onChange={(e) => setCity(e.target.value)} 
-                        placeholder="Lagos" 
-                        className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.city ? 'border-red-500' : 'border-neutral-700'}`} 
-                      />
-                      {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-                    </div>
-
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-neutral-300 mb-1">State</label>
-                      <input 
-                        id="state"
-                        required 
-                        value={state} 
-                        onChange={(e) => setState(e.target.value)} 
-                        placeholder="Lagos" 
-                        className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.state ? 'border-red-500' : 'border-neutral-700'}`} 
-                      />
-                      {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-                    </div>
-
-                    <div>
-                      <label htmlFor="zipCode" className="block text-sm font-medium text-neutral-300 mb-1">ZIP Code</label>
-                      <input 
-                        id="zipCode"
-                        required 
-                        value={zipCode} 
-                        onChange={(e) => setZipCode(e.target.value)} 
-                        placeholder="100001" 
-                        className={`w-full p-3 bg-neutral-900 border rounded-lg focus:ring-2 focus:ring-accent-green focus:border-accent-green text-white ${errors.zipCode ? 'border-red-500' : 'border-neutral-700'}`} 
-                      />
-                      {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(2)}
-                    className="w-full px-6 py-3 bg-accent-green text-white rounded-lg font-semibold hover:bg-accent-green-700 transition-colors"
-                  >
-                    Continue to Payment
-                  </button>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {/* Step 2: Payment */}
-              {currentStep === 2 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
-                  
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 p-4 border border-neutral-700 rounded-lg cursor-pointer hover:border-accent-green transition-colors">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="card"
-                        checked={paymentMethod === 'card'}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-4 h-4"
-                      />
-                      <CreditCard className="h-5 w-5 text-accent-green" />
-                      <span className="text-white">Credit/Debit Card</span>
-                    </label>
-
-                    <label className="flex items-center gap-3 p-4 border border-neutral-700 rounded-lg cursor-pointer hover:border-accent-green transition-colors">
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="bank_transfer"
-                        checked={paymentMethod === 'bank_transfer'}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-white">Bank Transfer</span>
-                    </label>
-                  </div>
-
-                  {/* Security badges */}
-                  <div className="flex items-center gap-4 p-4 bg-neutral-900 rounded-lg">
-                    <Lock className="h-5 w-5 text-accent-green" />
-                    <div className="text-sm text-neutral-300">
-                      <div className="font-semibold">Secure Payment</div>
-                      <div className="text-xs text-neutral-400">Your payment information is encrypted</div>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {currentStep === 1 && (
+                  <section className="rounded-[28px] border border-white/10 bg-black/40 p-6">
+                    <div className="mb-6 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">Step 1</p>
+                        <h2 className="text-2xl font-semibold">Route your shipment</h2>
+                      </div>
+                      <span className="text-xs text-white/60">All fields mandatory</span>
                     </div>
-                  </div>
 
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(1)}
-                      className="flex-1 px-6 py-3 border border-neutral-700 text-white rounded-lg font-semibold hover:border-neutral-500 transition-colors"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(3)}
-                      className="flex-1 px-6 py-3 bg-accent-green text-white rounded-lg font-semibold hover:bg-accent-green-700 transition-colors"
-                    >
-                      Review Order
-                    </button>
-                  </div>
-                </div>
-              )}
+                    <div className="space-y-5">
+                      <div>
+                        <label htmlFor="name" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                          Full name
+                        </label>
+                        <input
+                          id="name"
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className={fieldClass(Boolean(errors.name))}
+                        />
+                        {errors.name && <p className="mt-1 text-xs text-hot-pink">{errors.name}</p>}
+                      </div>
 
-              {/* Step 3: Review */}
-              {currentStep === 3 && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold mb-4">Review Your Order</h2>
-                  
-                  <div className="space-y-3 p-4 bg-neutral-900 rounded-lg">
-                    <div>
-                      <div className="text-sm text-neutral-400">Shipping to:</div>
-                      <div className="text-white font-semibold">{name}</div>
-                      <div className="text-neutral-300 text-sm">{address}, {city}, {state} {zipCode}</div>
-                      <div className="text-neutral-300 text-sm">{email} • {phone}</div>
+                      <div className="grid gap-5 md:grid-cols-2">
+                        <div>
+                          <label htmlFor="email" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                            Email
+                          </label>
+                          <input
+                            id="email"
+                            required
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="john@example.com"
+                            className={fieldClass(Boolean(errors.email))}
+                          />
+                          {errors.email && <p className="mt-1 text-xs text-hot-pink">{errors.email}</p>}
+                        </div>
+                        <div>
+                          <label htmlFor="phone" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                            Phone
+                          </label>
+                          <input
+                            id="phone"
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="08012345678"
+                            className={fieldClass(Boolean(errors.phone))}
+                          />
+                          {errors.phone && <p className="mt-1 text-xs text-hot-pink">{errors.phone}</p>}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="address" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                          Street address
+                        </label>
+                        <input
+                          id="address"
+                          required
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          placeholder="123 Main Street"
+                          className={fieldClass(Boolean(errors.address))}
+                        />
+                        {errors.address && <p className="mt-1 text-xs text-hot-pink">{errors.address}</p>}
+                      </div>
+
+                      <div className="grid gap-5 md:grid-cols-3">
+                        <div>
+                          <label htmlFor="city" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                            City
+                          </label>
+                          <input
+                            id="city"
+                            required
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Lagos"
+                            className={fieldClass(Boolean(errors.city))}
+                          />
+                          {errors.city && <p className="mt-1 text-xs text-hot-pink">{errors.city}</p>}
+                        </div>
+                        <div>
+                          <label htmlFor="state" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                            State
+                          </label>
+                          <input
+                            id="state"
+                            required
+                            value={state}
+                            onChange={(e) => setState(e.target.value)}
+                            placeholder="Lagos"
+                            className={fieldClass(Boolean(errors.state))}
+                          />
+                          {errors.state && <p className="mt-1 text-xs text-hot-pink">{errors.state}</p>}
+                        </div>
+                        <div>
+                          <label htmlFor="zipCode" className="text-xs uppercase tracking-[0.3em] text-white/50">
+                            ZIP Code
+                          </label>
+                          <input
+                            id="zipCode"
+                            value={zipCode}
+                            onChange={(e) => setZipCode(e.target.value)}
+                            placeholder="100001"
+                            className={fieldClass(Boolean(errors.zipCode))}
+                          />
+                          {errors.zipCode && <p className="mt-1 text-xs text-hot-pink">{errors.zipCode}</p>}
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="border-t border-neutral-700 pt-3">
-                      <div className="text-sm text-neutral-400">Payment method:</div>
-                      <div className="text-white">{paymentMethod === 'card' ? 'Credit/Debit Card' : 'Bank Transfer'}</div>
-                    </div>
-                  </div>
 
-                  <div className="flex gap-3">
                     <button
                       type="button"
                       onClick={() => setCurrentStep(2)}
-                      disabled={showPayment}
-                      className="flex-1 px-6 py-3 border border-neutral-700 text-white rounded-lg font-semibold hover:border-neutral-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mt-8 w-full rounded-full border border-electric-volt-green bg-electric-volt-green px-6 py-4 text-sm font-black uppercase tracking-[0.35em] text-black transition hover:-translate-y-1"
                     >
-                      Back
+                      Continue to payment
                     </button>
-                    
-                    {!showPayment ? (
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="flex-1 px-6 py-3 bg-accent-green text-white rounded-lg font-semibold hover:bg-accent-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        {loading ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Creating Order...
-                          </span>
-                        ) : (
-                          'Continue to Payment'
-                        )}
-                      </button>
-                    ) : (
-                      <div className="flex-1">
-                        <PaystackButton
-                          email={email}
-                          amount={grandTotal}
-                          orderId={orderId!}
-                          onSuccess={handlePaymentSuccess}
-                          onClose={handlePaymentClose}
-                          metadata={{
-                            customer_name: name,
-                            customer_phone: phone,
-                            order_total: grandTotal,
-                            items_count: items.length
-                          }}
-                          className="w-full"
-                        >
-                          <span className="flex items-center justify-center gap-2">
-                            <CreditCard className="h-5 w-5" />
-                            Pay {formatNGN(grandTotal)}
-                          </span>
-                        </PaystackButton>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </form>
-          </div>
+                  </section>
+                )}
 
-          {/* Order Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-neutral-900 rounded-lg p-6 sticky top-4">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              
-              <div className="space-y-3 mb-4">
+                {currentStep === 2 && (
+                  <section className="rounded-[28px] border border-white/10 bg-black/40 p-6">
+                    <div className="mb-6 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">Step 2</p>
+                        <h2 className="text-2xl font-semibold">Select payment channel</h2>
+                      </div>
+                      <span className="text-xs text-white/60">Encrypted rails</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {['card'].map((method) => (
+                        <label
+                          key={method}
+                          className={`flex items-center gap-4 rounded-3xl border px-5 py-4 transition ${paymentMethod === method ? 'border-electric-volt-green bg-electric-volt-green/5' : 'border-white/15 hover:border-white/40'
+                            }`}
+                        >
+                          <input
+                            type="radio"
+                            name="payment"
+                            value={method}
+                            checked={paymentMethod === method}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                            className="h-4 w-4"
+                          />
+                          {method === 'card' && <CreditCard className="h-5 w-5 text-electric-volt-green" />}
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {method === 'card' ? 'Credit / Debit Card' : 'Bank Transfer'}
+                            </p>
+                            <p className="text-xs text-white/50">
+                              {method === 'card'
+                                ? 'Instant confirmation via Paystack'
+                                : 'Manual verification within 30 mins'}
+                            </p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-white/15 bg-white/5 px-5 py-4 text-sm text-white/70">
+                      <Lock className="h-5 w-5 text-electric-volt-green" />
+                      <span>Payments are encrypted with end-to-end SSL and monitored 24/7.</span>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(1)}
+                        className="flex-1 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/50"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(3)}
+                        className="flex-1 rounded-full border border-electric-volt-green bg-electric-volt-green px-6 py-3 text-sm font-black uppercase tracking-[0.3em] text-black transition hover:-translate-y-1"
+                      >
+                        Review order
+                      </button>
+                    </div>
+                  </section>
+                )}
+
+                {currentStep === 3 && (
+                  <section className="rounded-[28px] border border-white/10 bg-black/40 p-6">
+                    <div className="mb-6 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.4em] text-white/60">Step 3</p>
+                        <h2 className="text-2xl font-semibold">Final review</h2>
+                      </div>
+                      <span className="text-xs text-white/60">Confirm details below</span>
+                    </div>
+
+                    <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm">
+                      <div>
+                        <p className="text-white/50">Shipping to</p>
+                        <p className="text-lg font-semibold">{name}</p>
+                        <p className="text-white/70">{address}, {city}, {state} {zipCode}</p>
+                        <p className="text-white/60">{email} • {phone}</p>
+                      </div>
+                      <div className="border-t border-white/10 pt-4">
+                        <p className="text-white/50">Payment method</p>
+                        <p className="text-white">
+                          {paymentMethod === 'card' ? 'Credit/Debit Card via Paystack' : 'Bank Transfer'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(2)}
+                        disabled={showPayment}
+                        className="flex-1 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/50 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Back
+                      </button>
+
+                      {!showPayment ? (
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="flex-1 rounded-full border border-electric-volt-green bg-electric-volt-green px-6 py-3 text-sm font-black uppercase tracking-[0.3em] text-black transition hover:-translate-y-1 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              Creating order…
+                            </span>
+                          ) : (
+                            'Continue to payment'
+                          )}
+                        </button>
+                      ) : (
+                        <div className="flex-1">
+                          <PaystackButton
+                            email={email}
+                            amount={grandTotal}
+                            orderId={orderId!}
+                            onSuccess={handlePaymentSuccess}
+                            onClose={handlePaymentClose}
+                            metadata={{
+                              customer_name: name,
+                              customer_phone: phone,
+                              order_total: grandTotal,
+                              items_count: items.length,
+                            }}
+                            className="w-full"
+                          >
+                            <span className="flex items-center justify-center gap-2">
+                              <CreditCard className="h-5 w-5" />
+                              Pay {formatNGN(grandTotal)}
+                            </span>
+                          </PaystackButton>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
+              </form>
+            </div>
+
+            <aside className="sticky top-6 space-y-6 rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-[0_25px_45px_rgba(0,0,0,0.45)]">
+              <div>
+                <p className="text-xs uppercase tracking-[0.4em] text-white/60">Order summary</p>
+                <h2 className="mt-2 text-3xl font-black">{formatNGN(grandTotal)}</h2>
+                <p className="text-sm text-white/50">Shipping and taxes finalize after confirmation.</p>
+              </div>
+
+              <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-3">
+                  <div key={item.id} className="flex gap-4 rounded-2xl border border-white/10 bg-black/40 p-3">
                     {item.image && (
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        <Image
-                          src={item.image}
-                          alt={item.name || 'Product'}
-                          fill
-                          className="object-cover"
-                        />
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl">
+                        <Image src={item.image} alt={item.name || 'Product'} fill className="object-cover" />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <div className="text-sm text-white">{item.name}</div>
-                      <div className="text-xs text-neutral-400">Qty: {item.quantity}</div>
-                      <div className="text-sm text-accent-green font-semibold">
-                        {formatNGN((item.price || 0) * item.quantity)}
-                      </div>
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold">{item.name}</p>
+                      <p className="text-white/50">Qty · {item.quantity}</p>
+                      <p className="text-electric-volt-green font-semibold">
+                        {formatNGN(item.price * item.quantity)}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="border-t border-neutral-700 pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-neutral-400">Subtotal</span>
-                  <span className="text-white">{formatNGN(total)}</span>
+              <div className="space-y-2 border-t border-white/10 pt-4 text-sm text-white/70">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatNGN(total)}</span>
                 </div>
-
-                <div className="flex justify-between text-lg font-bold border-t border-neutral-700 pt-2">
-                  <span className="text-white">Total</span>
-                  <span className="text-accent-green">{formatNGN(grandTotal)}</span>
+                <div className="flex items-center justify-between">
+                  <span>Shipping</span>
+                  <span className="text-hot-pink">Calculated next</span>
+                </div>
+                <div className="flex items-center justify-between text-lg font-black text-electric-volt-green">
+                  <span>Total due</span>
+                  <span>{formatNGN(grandTotal)}</span>
                 </div>
               </div>
 
-              {/* Security badge */}
-              <div className="mt-6 flex items-center gap-2 text-xs text-neutral-400">
-                <Shield className="h-4 w-4 text-accent-green" />
-                <span>Secure checkout powered by SSL encryption</span>
+              <div className="space-y-3 rounded-2xl border border-white/15 bg-black/40 p-4 text-xs uppercase tracking-[0.4em] text-white/60">
+                <div className="flex items-center justify-between">
+                  <span>Signals</span>
+                  <span>{items.length}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Supply status</span>
+                  <span className="text-electric-volt-green">In stock</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Security</span>
+                  <span>SSL 256-bit</span>
+                </div>
               </div>
-            </div>
+
+              <div className="flex items-center gap-3 text-xs text-white/60">
+                <Shield className="h-4 w-4 text-electric-volt-green" />
+                <span>Secure checkout powered by Paystack & SSL vaulting.</span>
+              </div>
+            </aside>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

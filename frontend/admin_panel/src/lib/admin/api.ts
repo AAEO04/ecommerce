@@ -1,4 +1,4 @@
-import type { Product, ApiResponse } from '@/types/admin'
+import type { Product, ApiResponse, ProductImagePayload } from '@/types/admin'
 import { CONFIG } from '@/lib/config'
 import { toast } from 'sonner'
 
@@ -96,14 +96,34 @@ class AdminApiClient {
   }
 
   // Product CRUD operations
+  private mapProductPayload(productData: {
+    name: string
+    description: string
+    category?: string
+    images: ProductImagePayload[]
+    variants: Array<{
+      size: string
+      color?: string
+      price: number
+      stock_quantity: number
+    }>
+  }) {
+    return JSON.stringify(productData)
+  }
+
   async getProducts(): Promise<ApiResponse<Product[]>> {
     return this.request<Product[]>(`${this.productApiUrl}/`)
+  }
+
+  async getProduct(productId: number): Promise<ApiResponse<Product>> {
+    return this.request<Product>(`${this.productApiUrl}/${productId}`)
   }
 
   async createProduct(productData: {
     name: string
     description: string
-    image_urls: string[]
+    category?: string
+    images: ProductImagePayload[]
     variants: Array<{
       size: string
       color?: string
@@ -113,7 +133,7 @@ class AdminApiClient {
   }): Promise<ApiResponse<Product>> {
     return this.request<Product>(`${this.adminApiUrl}/products/`, {
       method: 'POST',
-      body: JSON.stringify(productData),
+      body: this.mapProductPayload(productData),
     })
   }
 
@@ -122,7 +142,8 @@ class AdminApiClient {
     productData: {
       name: string
       description: string
-      image_urls: string[]
+      category?: string
+      images: ProductImagePayload[]
       variants: Array<{
         size: string
         color?: string
@@ -133,7 +154,7 @@ class AdminApiClient {
   ): Promise<ApiResponse<Product>> {
     return this.request<Product>(`${this.adminApiUrl}/products/${productId}`, {
       method: 'PUT',
-      body: JSON.stringify(productData),
+      body: this.mapProductPayload(productData),
     })
   }
 

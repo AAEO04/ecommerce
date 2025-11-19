@@ -73,6 +73,18 @@
     @apply w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 transition-all duration-200 focus:ring-2 focus:ring-orange-500 focus:border-orange-500;
   }
 
+  /* Remove native number input spinner controls */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   /* Admin Button Styles */
   .admin-btn-primary {
     @apply bg-gray-900 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:bg-gray-800 active:scale-95 hover:shadow-lg;

@@ -34,88 +34,91 @@ export function Cart() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative hover:bg-purple-50 transition-colors">
-          <ShoppingCart className="h-5 w-5 text-gray-700" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-11 w-11 rounded-full border border-white/20 bg-white/5 text-white hover:border-electric-volt-green hover:bg-electric-volt-green/10"
+        >
+          <ShoppingCart className="h-5 w-5" />
           {totalCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-lg">
+            <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-black bg-electric-volt-green text-[10px] font-black text-black">
               {totalCount}
             </span>
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg">
-        <SheetHeader className="border-b pb-4">
-          <SheetTitle className="text-2xl font-bold">Shopping Cart</SheetTitle>
+      <SheetContent className="w-full border-l border-white/10 bg-black/95 text-white sm:max-w-md">
+        <SheetHeader className="border-b border-white/10 pb-4">
+          <p className="text-xs uppercase tracking-[0.4em] text-white/60">Mission cargo</p>
+          <SheetTitle className="text-2xl font-black">Rapid cart</SheetTitle>
           {totalCount > 0 && (
-            <p className="text-sm text-gray-500">{totalCount} {totalCount === 1 ? 'item' : 'items'}</p>
+            <p className="text-sm text-white/60">{totalCount} {totalCount === 1 ? 'item' : 'items'} staged</p>
           )}
         </SheetHeader>
         <div className="flex-1 overflow-y-auto py-6">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full py-12">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                <ShoppingCart className="h-10 w-10 text-gray-400" />
+            <div className="relative flex h-full flex-col items-center justify-center gap-4 rounded-3xl border border-dashed border-white/20 bg-white/5 py-12 text-center">
+              <div className="absolute inset-0 hero-grid opacity-10" aria-hidden />
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-electric-volt-green/40">
+                <ShoppingCart className="h-10 w-10 text-electric-volt-green" />
               </div>
-              <p className="text-lg font-semibold text-gray-900 mb-2">Your cart is empty</p>
-              <p className="text-sm text-gray-500 mb-6">Add items to get started</p>
-              <Link href="/products">
-                <Button className="bg-green-500 hover:bg-green-600">Start Shopping</Button>
+              <div className="relative space-y-1">
+                <p className="text-xs uppercase tracking-[0.5em] text-white/50">No payloads</p>
+                <p className="text-lg font-semibold text-white">Cart is idle</p>
+                <p className="text-sm text-white/60">Pulse through products to lock a drop.</p>
+              </div>
+              <Link
+                href="/products"
+                className="relative inline-flex items-center gap-2 rounded-full border border-electric-volt-green bg-electric-volt-green/90 px-6 py-2 text-xs font-black uppercase tracking-[0.3em] text-black transition hover:-translate-y-1"
+              >
+                Browse drops
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 rounded-lg border border-gray-200 hover:border-purple-200 transition-colors">
-                  {/* Product Image */}
+                <div
+                  key={item.id}
+                  className="flex gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-[0_10px_30px_rgba(0,0,0,0.35)]"
+                >
                   {item.image && (
-                    <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
-                      <Image
-                        src={item.image}
-                        alt={item.name ?? "Product"}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl bg-black/40">
+                      <Image src={item.image} alt={item.name ?? 'Product'} fill className="object-cover" />
                     </div>
                   )}
-
-                  {/* Product Details */}
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
+                  <div className="flex flex-1 flex-col justify-between gap-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.name}</h3>
-                      <p className="text-base font-bold text-purple-600 mt-1">
-                        {formatNGN(item.price ?? 0)}
-                      </p>
+                      <p className="text-[11px] uppercase tracking-[0.4em] text-white/40">Drop #{item.productId}</p>
+                      <p className="line-clamp-2 text-sm font-semibold">{item.name}</p>
+                      <p className="text-lg font-black text-electric-volt-green">{formatNGN(item.price)}</p>
                     </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2 border border-gray-300 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-2 py-1">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           disabled={item.quantity <= 1}
-                          className="p-1.5 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-l-lg"
+                          className="rounded-full p-1 text-white/60 transition hover:bg-white/10 disabled:opacity-40"
                           aria-label="Decrease quantity"
                         >
-                          <Minus className="h-3 w-3 text-gray-600" />
+                          <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="px-3 text-sm font-semibold text-gray-900 min-w-[2ch] text-center">
-                          {item.quantity}
-                        </span>
+                        <span className="min-w-[2ch] text-center text-sm font-semibold">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1.5 hover:bg-gray-100 transition-colors rounded-r-lg"
+                          className="rounded-full p-1 text-white transition hover:bg-white/10"
                           aria-label="Increase quantity"
                         >
-                          <Plus className="h-3 w-3 text-gray-600" />
+                          <Plus className="h-3.5 w-3.5" />
                         </button>
                       </div>
-
+                      <span className="text-sm font-semibold text-white/70">{formatNGN(item.price * item.quantity)}</span>
                       <button
                         onClick={() => handleRemove(item.id, item.name)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="ml-auto flex items-center gap-1 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-hot-pink transition hover:border-hot-pink"
                         aria-label="Remove item"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -125,24 +128,22 @@ export function Cart() {
           )}
         </div>
         {items.length > 0 && (
-          <SheetFooter className="border-t pt-6">
+          <SheetFooter className="border-t border-white/10 pt-6">
             <div className="w-full space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-gray-700">Subtotal</span>
-                <span className="text-2xl font-bold text-gray-900">{formatNGN(total)}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-[0.4em] text-white/60">Live subtotal</span>
+                <span className="text-2xl font-black text-electric-volt-green">{formatNGN(total)}</span>
               </div>
-              <p className="text-sm text-gray-500">
-                Shipping and taxes calculated at checkout
-              </p>
+              <p className="text-xs text-white/50">Shipping + taxes finalize in checkout.</p>
               <div className="space-y-3">
                 <Link href="/checkout" className="block">
-                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white py-6 text-base font-semibold shadow-lg">
-                    Proceed to Checkout
+                  <Button className="w-full rounded-full border border-electric-volt-green bg-electric-volt-green px-6 py-4 text-sm font-black uppercase tracking-[0.4em] text-black transition hover:-translate-y-1">
+                    Launch checkout
                   </Button>
                 </Link>
                 <Link href="/cart" className="block">
-                  <Button variant="outline" className="w-full py-6 text-base font-medium">
-                    View Full Cart
+                  <Button variant="ghost" className="w-full rounded-full border border-white/20 px-6 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 hover:border-white/50">
+                    View full manifest
                   </Button>
                 </Link>
               </div>

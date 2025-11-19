@@ -13,20 +13,64 @@ import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { uploadMultipleToCloudinary } from '@/lib/cloudinary'
 import { Loading } from '@/components/ui/loading'
-import type { Product } from '@/types/admin'
+import type { Product, ProductImagePayload } from '@/types/admin'
+
+type CategoryOption = {
+  id: number
+  name: string
+  slug: string
+  is_active?: boolean
+}
+
+type VariantForm = {
+  id?: number
+  size: string
+  color: string
+  price: string
+  stock_quantity: number
+  [key: string]: unknown
+}
+
+type ProductFormData = {
+  name: string
+  description: string
+  category: string
+  variants: VariantForm[]
+  imageFiles: File[]
+}
 
 export default function EditProductPage() {
   const [product, setProduct] = useState<Product | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
-    variants: [{ size: '', color: '', price: 0, stock_quantity: 0 }],
-    imageFiles: [] as File[],
+    category: '',
+    variants: [{ size: '', color: '', price: '', stock_quantity: 0 }],
+    imageFiles: [],
   })
   const [isUploading, setIsUploading] = useState(false)
+  const [existingImages, setExistingImages] = useState<ProductImagePayload[]>([])
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
+  const params = useParams<{ id?: string }>()
+  const id = params?.id ?? ''
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setIsLoadingCategories(true)
+      const response = await adminApi.getCategories()
+      if (response.success && response.data) {
+        const activeCategories = response.data.filter((category: CategoryOption) => category.is_active !== false)
+        setCategories(activeCategories)
+      } else {
+        toast.error(response.error || 'Failed to load categories')
+      }
+      setIsLoadingCategories(false)
+    }
+
+    loadCategories()
+  }, [])
 
   useEffect(() => {
     if (id) {
@@ -37,13 +81,27 @@ export default function EditProductPage() {
   const loadProduct = async (productId: number) => {
     const response = await adminApi.getProduct(productId)
     if (response.success && response.data) {
-      setProduct(response.data)
+      const productData = response.data
+      setProduct(productData)
+
+      const mappedImages: ProductImagePayload[] = (productData.images || [])
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
+        .map((image, index) => ({
+          image_url: image.image_url,
+          alt_text: image.alt_text || `${productData.name} image ${index + 1}`,
+          display_order: image.display_order ?? index,
+          is_primary: image.is_primary ?? index === 0,
+        }))
+
+      setExistingImages(mappedImages)
       setFormData({
-        name: response.data.name,
-        description: response.data.description,
-        variants: (response.data.variants || []).map(v => ({
+        name: productData.name,
+        description: productData.description || '',
+        category: productData.category || '',
+        variants: (productData.variants || []).map(v => ({
           ...v,
-          color: v.color || ''
+          color: v.color || '',
+          price: v.price ? v.price.toString() : '',
         })),
         imageFiles: [],
       })
@@ -89,17 +147,27 @@ export default function EditProductPage() {
       }
     }
 
-    if (product) {
-      imageUrls = [...(product.images?.map(img => img.image_url) || []), ...imageUrls]
-    }
+    const uploadedImages: ProductImagePayload[] = imageUrls.map((url, index) => ({
+      image_url: url,
+      alt_text: `${formData.name} image ${existingImages.length + index + 1}`,
+      display_order: existingImages.length + index,
+      is_primary: existingImages.length === 0 && index === 0,
+    }))
+
+    const combinedImages = [...existingImages, ...uploadedImages].map((image, index) => ({
+      ...image,
+      display_order: index,
+      is_primary: index === 0,
+    }))
 
     const productData = {
       name: formData.name,
       description: formData.description,
-      image_urls: imageUrls,
+      category: formData.category || undefined,
+      images: combinedImages,
       variants: formData.variants.map(v => ({
         ...v,
-        price: parseFloat(v.price.toString()) || 0,
+        price: parseFloat(v.price || '0') || 0,
         stock_quantity: parseInt(v.stock_quantity.toString()) || 0,
       })),
     }
@@ -117,7 +185,7 @@ export default function EditProductPage() {
   const addVariant = () => {
     setFormData(prev => ({
       ...prev,
-      variants: [...prev.variants, { size: '', color: '', price: 0, stock_quantity: 0 }]
+      variants: [...prev.variants, { size: '', color: '', price: '', stock_quantity: 0 }]
     }))
   }
 
@@ -135,6 +203,18 @@ export default function EditProductPage() {
         i === index ? { ...v, [field]: value } : v
       )
     }))
+  }
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev =>
+      prev
+        .filter((_, i) => i !== index)
+        .map((image, newIndex) => ({
+          ...image,
+          display_order: newIndex,
+          is_primary: newIndex === 0,
+        }))
+    )
   }
 
   if (!product) {
@@ -192,7 +272,49 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    disabled={isLoadingCategories}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.slug} value={category.slug}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <Label>Product Images</Label>
+                  {existingImages.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {existingImages.map((image, index) => (
+                        <div key={`${image.image_url}-${index}`} className="flex items-center justify-between rounded border border-gray-200 bg-gray-50 p-2 text-sm text-gray-700">
+                          <span className="truncate pr-4">{image.image_url}</span>
+                          <div className="flex items-center gap-2">
+                            {image.is_primary && (
+                              <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs uppercase tracking-wide">Primary</span>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeExistingImage(index)}
+                              aria-label={`Remove existing image ${index + 1}`}
+                            >
+                              <X className="h-4 w-4" aria-hidden="true" />
+                              <span className="sr-only">Remove existing image</span>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="mt-2">
                     <input
                       type="file"
@@ -275,15 +397,21 @@ export default function EditProductPage() {
                             </div>
                             <div>
                               <Label htmlFor={`price-${index}`}>Price</Label>
-                              <Input
-                                id={`price-${index}`}
-                                type="number"
-                                step="0.01"
-                                value={variant.price}
-                                onChange={(e) => updateVariant(index, 'price', parseFloat(e.target.value) || 0)}
-                                placeholder="0.00"
-                                required
-                              />
+                              <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                  ₦
+                                </span>
+                                <Input
+                                  id={`price-${index}`}
+                                  type="number"
+                                  step="0.01"
+                                  value={variant.price as string}
+                                  onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                                  placeholder="0.00"
+                                  required
+                                  className="pl-7"
+                                />
+                              </div>
                             </div>
                             <div>
                               <Label htmlFor={`stock-${index}`}>Stock</Label>

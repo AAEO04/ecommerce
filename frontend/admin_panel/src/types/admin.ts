@@ -7,6 +7,9 @@ export interface Product {
   images?: Array<{
     id: number
     image_url: string
+    alt_text?: string
+    display_order?: number
+    is_primary?: boolean
   }>
   variants: Array<{
     id: number
@@ -19,9 +22,17 @@ export interface Product {
   updated_at?: string
 }
 
+export interface ProductImagePayload {
+  image_url: string
+  alt_text?: string
+  display_order: number
+  is_primary: boolean
+}
+
 export interface ProductFormData {
   name: string
   description: string
+  category?: string
   variants: Array<{
     size: string
     color: string

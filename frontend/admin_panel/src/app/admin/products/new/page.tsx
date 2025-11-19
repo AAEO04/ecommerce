@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Button } from '@/components/ui/button'
@@ -12,16 +12,58 @@ import { toast } from 'sonner'
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { uploadMultipleToCloudinary } from '@/lib/cloudinary'
+import type { ProductImagePayload } from '@/types/admin'
+
+type CategoryOption = {
+  id: number
+  name: string
+  slug: string
+  is_active?: boolean
+}
+
+type VariantForm = {
+  size: string
+  color: string
+  price: string
+  stock_quantity: number
+}
+
+type ProductFormData = {
+  name: string
+  description: string
+  category: string
+  variants: VariantForm[]
+  imageFiles: File[]
+}
 
 export default function NewProductPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     description: '',
-    variants: [{ size: '', color: '', price: 0, stock_quantity: 0 }],
-    imageFiles: [] as File[],
+    category: '',
+    variants: [{ size: '', color: '', price: '', stock_quantity: 0 }],
+    imageFiles: [],
   })
   const [isUploading, setIsUploading] = useState(false)
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
   const router = useRouter()
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setIsLoadingCategories(true)
+      const response = await adminApi.getCategories()
+      if (response.success && response.data) {
+        const activeCategories = response.data.filter((category: CategoryOption) => category.is_active !== false)
+        setCategories(activeCategories)
+      } else {
+        toast.error(response.error || 'Failed to load categories')
+      }
+      setIsLoadingCategories(false)
+    }
+
+    loadCategories()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,13 +101,21 @@ export default function NewProductPage() {
       }
     }
 
+    const images: ProductImagePayload[] = imageUrls.map((url, index) => ({
+      image_url: url,
+      alt_text: `${formData.name} image ${index + 1}`,
+      display_order: index,
+      is_primary: index === 0,
+    }))
+
     const productData = {
       name: formData.name,
       description: formData.description,
-      image_urls: imageUrls,
+      category: formData.category || undefined,
+      images,
       variants: formData.variants.map(v => ({
         ...v,
-        price: parseFloat(v.price.toString()) || 0,
+        price: parseFloat(v.price || '0') || 0,
         stock_quantity: parseInt(v.stock_quantity.toString()) || 0,
       })),
     }
@@ -83,7 +133,7 @@ export default function NewProductPage() {
   const addVariant = () => {
     setFormData(prev => ({
       ...prev,
-      variants: [...prev.variants, { size: '', color: '', price: 0, stock_quantity: 0 }]
+      variants: [...prev.variants, { size: '', color: '', price: '', stock_quantity: 0 }]
     }))
   }
 
@@ -145,6 +195,24 @@ export default function NewProductPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md resize-none"
                     rows={4}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    disabled={isLoadingCategories}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.slug} value={category.slug}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -231,15 +299,22 @@ export default function NewProductPage() {
                             </div>
                             <div>
                               <Label htmlFor={`price-${index}`}>Price</Label>
-                              <Input
-                                id={`price-${index}`}
-                                type="number"
-                                step="0.01"
-                                value={variant.price}
-                                onChange={(e) => updateVariant(index, 'price', parseFloat(e.target.value) || 0)}
-                                placeholder="0.00"
-                                required
-                              />
+                              <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                                  ₦
+                                </span>
+                                <Input
+                                  id={`price-${index}`}
+                                  type="number"
+                                  step="0.01"
+                                  min="0.01"
+                                  value={variant.price}
+                                  onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                                  placeholder="0.00"
+                                  required
+                                  className="pl-7"
+                                />
+                              </div>
                             </div>
                             <div>
                               <Label htmlFor={`stock-${index}`}>Stock</Label>

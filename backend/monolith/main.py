@@ -8,7 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from routers import products, admin, orders, notifications, auth, payment, admin_management, payment_routes
+from routers import products, admin, orders, notifications, auth, admin_management, payment_routes
 from database import SessionLocal
 from config import settings
 from utils.rate_limiting import limiter, rate_limit_handler
@@ -101,7 +101,6 @@ app.include_router(products.router, prefix="/api/products", tags=["Products"])
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
-app.include_router(payment.router, prefix="/api/webhooks", tags=["Webhooks"])
 
 @app.get("/")
 def read_root():
