@@ -44,14 +44,14 @@ export function SearchBar({ onClose }: SearchBarProps) {
       setIsOpen(true)
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000'}/api/products`)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/products`)
         const products: Product[] = await response.json()
-        
+
         const filtered = products.filter(product =>
           product.name.toLowerCase().includes(query.toLowerCase()) ||
           product.description?.toLowerCase().includes(query.toLowerCase())
         )
-        
+
         setResults(filtered.slice(0, 5))
       } catch (error) {
         console.error('Search error:', error)
