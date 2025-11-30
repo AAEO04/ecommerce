@@ -27,7 +27,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
   if (!product) return null
 
   const handleAddToCart = () => {
-    addToCart(product)
+    const variantId = product.variants?.[0]?.id || 1
+    addToCart(product, variantId)
     toast.success(`${product.name} added to cart`)
   }
 
@@ -81,18 +82,17 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
-                  
+
                   {product.images.length > 1 && (
                     <div className="grid grid-cols-4 gap-2">
                       {product.images.map((img, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedImageIndex(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            selectedImageIndex === index
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
                               ? 'border-accent-green'
                               : 'border-neutral-700 hover:border-neutral-500'
-                          }`}
+                            }`}
                         >
                           <Image
                             src={img.image_url}
@@ -112,7 +112,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   <DialogTitle className="text-2xl font-bold text-white">
                     {product.name}
                   </DialogTitle>
-                  
+
                   <div className="text-3xl font-bold text-accent-green">
                     {formatNGN(product.price)}
                   </div>
@@ -135,11 +135,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
                     <button
                       onClick={handleToggleWishlist}
-                      className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
-                        isInWishlist(product.id)
+                      className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${isInWishlist(product.id)
                           ? 'bg-red-500 hover:bg-red-600 text-white'
                           : 'bg-neutral-800 hover:bg-neutral-700 text-white'
-                      }`}
+                        }`}
                     >
                       <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                       {isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}

@@ -97,7 +97,8 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
   const visibleProducts = filteredProducts.slice(currentIndex, currentIndex + itemsPerView)
 
   const handleQuickAdd = (product: Product) => {
-    addItem(product)
+    const variantId = product.variants?.[0]?.id || 1
+    addItem(product, variantId)
     toast.success(`${product.name} added to cart`)
   }
 

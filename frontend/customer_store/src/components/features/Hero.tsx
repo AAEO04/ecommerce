@@ -218,7 +218,7 @@ export function Hero({ featuredProducts }: HeroProps) {
                       </p>
                       <p className="text-lg font-bold text-white font-display leading-tight mt-1">{product.name}</p>
                       <p className="text-xs uppercase text-white/60 mt-1">
-                        {'colorLabel' in product && product.colorLabel ? product.colorLabel : 'Limited Run'}
+                        {('colorLabel' in product && product.colorLabel ? product.colorLabel : 'Limited Run') as string}
                       </p>
                       <p className="text-electric-volt-green font-bold mt-2 text-lg">₦{displayPrice}</p>
 

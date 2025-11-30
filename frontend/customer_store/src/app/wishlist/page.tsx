@@ -21,8 +21,11 @@ export default function WishlistPage() {
       price: item.price,
       description: '',
       images: [{ image_url: item.image }],
+      variants: item.variants || [{ id: 1, size: 'Default', price: item.price, stock_quantity: 100 }],
     }
-    addToCart(product)
+    // Use first available variant
+    const variantId = product.variants[0]?.id || 1
+    addToCart(product, variantId)
     toast.success(`${item.name} added to cart`)
   }
 
