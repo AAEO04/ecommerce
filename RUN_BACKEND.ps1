@@ -111,7 +111,7 @@ Write-Host "  API Docs:         http://localhost:8000/docs" -ForegroundColor Gre
 Write-Host "  ReDoc:            http://localhost:8000/redoc" -ForegroundColor Green
 Write-Host ""
 Write-Host "  Default Admin Credentials:" -ForegroundColor Yellow
-Write-Host "  Email:    admin@madrush.com" -ForegroundColor White
+Write-Host "  Email:    admin@Madrush.com.ng" -ForegroundColor White
 Write-Host "  Password: admin123" -ForegroundColor White
 Write-Host "=" -NoNewline -ForegroundColor Cyan
 Write-Host "=" * 69 -ForegroundColor Cyan

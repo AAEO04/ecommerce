@@ -1,16 +1,8 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Shirt, Zap, Package } from 'lucide-react';
+import Image from 'next/image';
 import { fetchCategories, type Category } from '@/lib/api';
-
-// Icon mapping for categories
-const getCategoryIcon = (categoryName: string) => {
-  const name = categoryName.toLowerCase();
-  if (name.includes('shirt') || name.includes('top')) return Shirt;
-  if (name.includes('new') || name.includes('drop')) return Zap;
-  return Package; // Default icon
-};
 
 export function Categories() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -20,8 +12,11 @@ export function Categories() {
     const loadCategories = async () => {
       try {
         const data = await fetchCategories();
-        // Only show active categories, limit to 6 for display
-        const activeCategories = data.filter(cat => cat.is_active).slice(0, 6);
+        console.log('Fetched categories:', data);
+        // Only show active categories that have images, limit to 6 for display
+        const activeCategories = data
+          .filter(cat => cat.is_active && cat.image_url)
+          .slice(0, 6);
         setCategories(activeCategories);
       } catch (error) {
         console.error('Failed to load categories:', error);
@@ -39,40 +34,66 @@ export function Categories() {
   }
 
   return (
-    <section className="py-12">
-      <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl font-semibold mb-6 text-white">Browse by Category</h2>
+    <section className="py-12 md:py-20 bg-neutral-950 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-end mb-8 md:mb-10">
+          <div>
+            <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 uppercase tracking-tight">Browse by Category</h2>
+            <p className="text-sm md:text-base text-neutral-400">Curated collections for the fast lane</p>
+          </div>
+          <Link href="/products" className="text-electric-volt-green hover:text-white transition-colors text-sm font-medium hidden md:block uppercase tracking-wider">
+            View All &rarr;
+          </Link>
+        </div>
+
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex gap-4 overflow-hidden">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 h-32 animate-pulse"
+                className="min-w-[280px] md:min-w-0 md:w-full aspect-[3/4] bg-neutral-900 rounded-2xl animate-pulse"
               />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible pb-6 md:pb-0 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {categories.map((category) => {
-              const IconComponent = getCategoryIcon(category.name);
               return (
                 <Link
                   key={category.id}
                   href={`/products?category=${category.slug}`}
-                  className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:border-accent-purple transition-colors cursor-pointer"
+                  className="group relative min-w-[85vw] sm:min-w-[45vw] md:min-w-0 aspect-[3/4] md:aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-900 block snap-center border border-white/10"
                 >
-                  <div className="text-accent-purple mb-4">
-                    <IconComponent size={40} />
+                  <Image
+                    src={category.image_url}
+                    alt={category.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
+                    sizes="(max-width: 768px) 85vw, (max-width: 1200px) 50vw, 33vw"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90 transition-opacity group-hover:opacity-100" />
+
+                  <div className="absolute bottom-0 left-0 p-6 w-full">
+                    <h3 className="text-2xl md:text-3xl font-black text-white mb-2 uppercase italic tracking-tighter transform translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-transform duration-500">
+                      {category.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-electric-volt-green text-xs font-bold uppercase tracking-widest opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                      <span>Shop Collection</span>
+                      <span className="transform group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white">{category.name}</h3>
-                  {category.description && (
-                    <p className="text-sm text-gray-400 mt-2">{category.description}</p>
-                  )}
                 </Link>
               );
             })}
           </div>
         )}
+
+        <div className="mt-4 text-center md:hidden">
+          <Link href="/products" className="inline-block py-3 px-8 border border-white/20 rounded-full text-white hover:bg-white hover:text-black transition-all text-xs font-bold uppercase tracking-widest">
+            View All Categories
+          </Link>
+        </div>
       </div>
     </section>
   );

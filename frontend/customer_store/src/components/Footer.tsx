@@ -21,172 +21,149 @@ export function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="relative mt-12 border-t-4 border-white bg-black text-white overflow-hidden">
-      <div className="absolute inset-0 urban-wall opacity-40" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          background:
-            'radial-gradient(circle at 15% 20%, rgba(173,255,0,0.12), transparent 45%), radial-gradient(circle at 80% 10%, rgba(255,59,92,0.15), transparent 40%), radial-gradient(circle at 70% 70%, rgba(168,85,247,0.2), transparent 55%)',
-        }}
-      />
+    <footer className="relative mt-24 border-t border-white/10 bg-black text-white overflow-hidden">
+      <div className="absolute inset-0 urban-wall opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-14">
-        <div className="grid gap-10 lg:grid-cols-4">
-          <div className="space-y-5 lg:col-span-2">
-            <div className="text-3xl font-extrabold text-white drip" style={{ fontFamily: 'Druk Wide, Arial Black, Impact, sans-serif' }}>
-              MAD RUSH
+      <div className="relative mx-auto max-w-7xl px-6 py-20">
+        <div className="grid gap-16 lg:grid-cols-[2fr_1fr_1fr_1.5fr]">
+          {/* Brand Column */}
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="text-4xl md:text-5xl font-black text-white tracking-tight" style={{ fontFamily: 'Druk Wide, Arial Black, Impact, sans-serif' }}>
+                MAD RUSH
+              </div>
+              <p className="font-tagline text-xl uppercase tracking-[0.3em] text-electric-volt-green/90">
+                No chills. Just kinetic street energy.
+              </p>
             </div>
-            <p className="font-tagline text-2xl uppercase tracking-[0.3em] text-electric-volt-green">
-              No chills. Just kinetic street energy.
-            </p>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-gray-400 leading-relaxed max-w-md">
               Built in the late-night labs for the people who refuse to power down. Every drop is engineered for motion,
               glow, and relentless pace.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4">
               {serviceHighlights.map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-md border border-white/20 bg-white/5 px-3 py-2 text-xs uppercase tracking-widest text-gray-200"
+                  className="group flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-2 transition-all hover:border-electric-volt-green/50 hover:bg-electric-volt-green/10"
                 >
-                  <p className="font-semibold text-electric-volt-green">{item.title}</p>
-                  <p className="text-[10px] text-gray-400">{item.detail}</p>
+                  <div className="h-1.5 w-1.5 rounded-full bg-electric-volt-green shadow-[0_0_8px_#46C018]" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white group-hover:text-electric-volt-green transition-colors">{item.title}</span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Navigation */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.4em] text-cyan-accent">Navigation</h3>
-            <ul className="space-y-3 text-sm">
+            <h3 className="mb-6 text-xs font-bold uppercase tracking-[0.4em] text-purple-500">Explore</h3>
+            <ul className="space-y-4">
               {quickLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="flex items-center justify-between text-gray-300 transition-colors hover:text-electric-volt-green"
+                    className="group flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
                   >
-                    {link.label}
-                    <span className="text-xs tracking-widest text-white/40">GO</span>
+                    <span className="h-px w-0 bg-electric-volt-green transition-all group-hover:w-4" />
+                    <span className="uppercase tracking-widest text-[10px] font-semibold">{link.label}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="space-y-5">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.4em] text-hot-pink">Support Signal</h3>
-            <div className="space-y-3 text-sm text-gray-300">
-              <a href="mailto:hey@madrush.store" className="flex items-center gap-3 hover:text-electric-volt-green">
-                <Mail className="h-4 w-4 text-electric-volt-green" />
-                hey@madrush.store
+          {/* Contact */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-hot-pink">Connect</h3>
+            <div className="space-y-4">
+              <a href="mailto:hey@madrush.store" className="group flex items-center gap-3 text-gray-400 hover:text-white transition-colors">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <span className="text-xs uppercase tracking-widest">hey@madrush.store</span>
               </a>
-              <a href="tel:+11234567890" className="flex items-center gap-3 hover:text-electric-volt-green">
-                <Phone className="h-4 w-4 text-electric-volt-green" />
-                +1 (123) 456-7890
-              </a>
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 text-electric-volt-green" />
-                <p>Studio 47 · Lower East Side · NYC</p>
+              <div className="flex items-start gap-3 text-gray-400">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <div className="flex flex-col gap-1 pt-1.5">
+                  <span className="text-xs uppercase tracking-widest">Studio 47</span>
+                  <span className="text-[10px] uppercase tracking-widest text-gray-600">Lower East Side · NYC</span>
+                </div>
               </div>
             </div>
-            <div className="rounded-lg border border-white/20 bg-white/5 p-4">
-              <p className="text-xs uppercase tracking-[0.4em] text-gray-400">Stay in the signal</p>
-              <form className="mt-3 space-y-3" onSubmit={(event) => event.preventDefault()}>
+          </div>
+
+          {/* Newsletter */}
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <h3 className="text-xs font-bold uppercase tracking-[0.4em] text-white mb-2">Join the Rush</h3>
+              <p className="text-xs text-gray-400 mb-4">Get early access to drops and exclusive kinetic gear.</p>
+              <form className="space-y-3" onSubmit={(event) => event.preventDefault()}>
                 <input
                   type="email"
-                  placeholder="email@domain.com"
-                  className="w-full rounded-md border border-white/20 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:border-electric-volt-green focus:outline-none"
+                  placeholder="ENTER EMAIL"
+                  className="w-full rounded-lg border border-white/10 bg-black/50 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white placeholder:text-gray-700 focus:border-electric-volt-green focus:outline-none transition-colors"
                   aria-label="Email address"
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-electric-volt-green py-2 text-sm font-bold uppercase tracking-[0.3em] text-black transition hover:bg-white"
+                  className="w-full rounded-lg bg-white py-3 text-xs font-black uppercase tracking-[0.3em] text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Join the rush
+                  Subscribe
                 </button>
               </form>
             </div>
-          </div>
 
-          <div className="space-y-4 lg:col-span-1" aria-hidden>
-            <div className="rounded-xl border border-white/15 bg-gradient-to-br from-black via-purple/40 to-transparent p-6 text-sm text-gray-400">
-              <p className="font-semibold uppercase tracking-[0.4em] text-purple">First Drop</p>
-              <p className="mt-3 text-lg font-black text-white">MAD RUSH 01</p>
-              <p className="mt-2 text-xs">
-                Prototype batch deployed. Limited units. No reruns.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 grid gap-6 border-t border-white/10 pt-8 text-sm text-gray-300 lg:grid-cols-2">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Connect</p>
-            <div className="mt-3 flex flex-wrap gap-4">
+            <div className="flex gap-3">
               <a
-                href="https://www.instagram.com/mad_rushh?igsh=dnB5YjNmOHBkZWM5&utm_source=qr"
+                href="https://www.instagram.com/mad_rushh"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-12 w-12 rounded-full border-2 border-white/30 bg-gradient-to-br from-[#fdf497] via-[#fd5949] to-[#285AEB] backdrop-blur transition hover:scale-110"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-purple-500 hover:text-purple-500 hover:scale-110"
                 aria-label="Instagram"
               >
-                <Instagram className="mx-auto mt-3 h-6 w-6 text-white" />
+                <Instagram className="h-4 w-4" />
               </a>
               <a
-                href="https://x.com/mad_rushh?s=21"
+                href="https://x.com/mad_rushh"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-12 w-12 rounded-full border-2 border-electric-volt-green text-electric-volt-green transition hover:scale-110"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-gray-400 transition-all hover:border-white hover:text-white hover:scale-110"
                 aria-label="X"
               >
-                <svg className="mx-auto mt-3 h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
-              <a
-                href="https://facebook.com/madrush"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-12 w-12 rounded-full border-2 border-blue-500 bg-blue-600 transition hover:scale-110"
-                aria-label="Facebook"
-              >
-                <Facebook className="mx-auto mt-3 h-6 w-6" />
-              </a>
             </div>
-          </div>
-          <div className="flex flex-col justify-between gap-3 lg:items-end">
-            <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Field Notes</p>
-            <p className="text-sm text-gray-300">
-              Broadcasting straight from the Lower East concrete grid. Tag <span className="text-electric-volt-green font-semibold">#MADRUSH</span> for a feature.
-            </p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-gray-400 md:flex-row md:items-center md:justify-between">
-          <p>
-            © {year} <span className="font-semibold text-electric-volt-green">MAD RUSH</span>. All rights reserved.
+        <div className="mt-20 border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-600">
+            © {year} MAD RUSH. All rights reserved.
           </p>
-          <div className="flex flex-wrap gap-6">
-            <Link href="/privacy" className="uppercase tracking-[0.3em] hover:text-hot-pink">
+          <div className="flex gap-8">
+            <Link href="/privacy" className="text-[10px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="uppercase tracking-[0.3em] hover:text-hot-pink">
+            <Link href="/terms" className="text-[10px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors">
               Terms
             </Link>
-            <Link href="/contact" className="uppercase tracking-[0.3em] hover:text-hot-pink">
+            <Link href="/contact" className="text-[10px] uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors">
               Support
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute top-16 right-10 font-tagline text-7xl text-purple opacity-10">
-        RUSH
-      </div>
-      <div className="pointer-events-none absolute bottom-16 left-6 font-tagline text-6xl text-hot-pink opacity-10">
-        MAD
-      </div>
+      {/* Decorative Background Elements */}
+      <div className="pointer-events-none absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-purple-900/20 blur-[100px]" />
+      <div className="pointer-events-none absolute bottom-0 left-0 -mb-20 -ml-20 h-96 w-96 rounded-full bg-electric-volt-green/10 blur-[100px]" />
     </footer>
   )
 }
+

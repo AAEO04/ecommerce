@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Unbounded } from 'next/font/google';
+import { Inter, Unbounded, Bebas_Neue } from 'next/font/google';
 import '@/styles/globals.css';
 import { ClientLayout } from '@/components/ClientLayout';
 
@@ -13,6 +13,13 @@ const unbounded = Unbounded({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-display',
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap',
+  variable: '--font-bebas',
 });
 
 export const metadata: Metadata = {
@@ -39,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `
         }} />
       </head>
-      <body className={`${inter.variable} ${unbounded.variable} font-sans bg-black min-h-screen flex flex-col antialiased`}>
+      <body className={`${inter.variable} ${unbounded.variable} ${bebasNeue.variable} font-sans bg-black min-h-screen flex flex-col antialiased`}>
         <ClientLayout>
           {children}
         </ClientLayout>

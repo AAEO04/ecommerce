@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Loading } from '@/components/ui/loading'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 
 interface Category {
   id: number
@@ -27,11 +28,12 @@ export default function EditCategoryPage() {
     name: '',
     slug: '',
     description: '',
+    image_url: '',
     parent_id: null as number | null,
   })
   const router = useRouter()
   const params = useParams()
-  const id = params.id as string
+  const id = params?.id as string
 
   useEffect(() => {
     if (id) {
@@ -48,6 +50,7 @@ export default function EditCategoryPage() {
           name: response.data.name,
           slug: response.data.slug,
           description: response.data.description || '',
+          image_url: response.data.image_url || '',
           parent_id: response.data.parent_id || null,
         })
       } else {
@@ -68,6 +71,8 @@ export default function EditCategoryPage() {
       .replace(/[\s-]+/g, '-')
   }
 
+  const [imageFile, setImageFile] = useState<File | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -76,10 +81,37 @@ export default function EditCategoryPage() {
       return
     }
 
+    if (!id) {
+      toast.error('Invalid category ID')
+      return
+    }
+
+    let imageUrl = formData.image_url
+
+    if (imageFile) {
+      try {
+        toast.loading('Uploading image...')
+        const uploadResult = await uploadToCloudinary(imageFile, 'madrush/categories')
+        toast.dismiss()
+
+        if (uploadResult.success && uploadResult.url) {
+          imageUrl = uploadResult.url
+        } else {
+          toast.error(uploadResult.error || 'Failed to upload image')
+          return
+        }
+      } catch (error) {
+        toast.dismiss()
+        toast.error('Failed to upload image')
+        return
+      }
+    }
+
     const categoryData = {
       name: formData.name.trim(),
       slug: formData.slug.trim() || generateSlug(formData.name),
       description: formData.description.trim() || undefined,
+      image_url: imageUrl || undefined,
       parent_id: formData.parent_id || undefined,
     }
 
@@ -173,13 +205,43 @@ export default function EditCategoryPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="image" className="text-sm font-semibold text-gray-700">Category Image</Label>
+
+                {formData.image_url && !imageFile && (
+                  <div className="mb-4 relative w-40 h-40 rounded-lg overflow-hidden border border-gray-200">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={formData.image_url.startsWith('http') ? formData.image_url : `${adminApi['apiUrl']}${formData.image_url}`}
+                      alt="Category preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImageFile(e.target.files[0])
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-gray-500 mt-1.5">
+                  Upload a new image to replace the current one. Recommended size: 800x600px.
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-3 pt-4">
                 <Link href="/admin/categories">
                   <Button type="button" variant="outline" className="px-6">
                     Cancel
                   </Button>
                 </Link>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6"
                 >

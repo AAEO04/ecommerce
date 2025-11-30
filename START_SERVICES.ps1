@@ -119,7 +119,7 @@ Write-Host "  Customer Store:   http://localhost:3000" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Default Admin Credentials:" -ForegroundColor Yellow
-Write-Host "  Email:    admin@madrush.com" -ForegroundColor White
+Write-Host "  Email:    admin@Madrush.com.ng" -ForegroundColor White
 Write-Host "  Password: admin123" -ForegroundColor White
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""

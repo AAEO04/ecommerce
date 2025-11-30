@@ -66,7 +66,7 @@ export default function AboutPage() {
             </div>
             <div className="relative overflow-hidden rounded-[36px] border border-white/10 bg-gradient-to-br from-neutral-900 via-black to-neutral-900 p-10">
               <div className="absolute inset-0 opacity-30 mix-blend-screen">
-                <Image src="/brand-circle.png" alt="Mad Rush" fill className="object-cover" />
+                <Image src="/creative-direct.png" alt="Mad Rush" fill className="object-cover" />
               </div>
               <div className="relative space-y-4">
                 <p className="text-sm uppercase tracking-[0.5em] text-white/50">Drop 07 dossier</p>

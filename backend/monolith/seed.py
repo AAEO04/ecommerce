@@ -23,13 +23,13 @@ def seed_admin_users(db: Session):
     logger.info("Seeding admin users...")
     
     # Check if admin exists
-    existing = db.query(AdminUser).filter(AdminUser.email == "admin@madrush.com").first()
+    existing = db.query(AdminUser).filter(AdminUser.email == "admin@Madrush.com.ng").first()
     if existing:
         logger.info("Admin user already exists, skipping...")
         return
     
     admin = AdminUser(
-        email="admin@madrush.com",
+        email="admin@Madrush.com.ng",
         hashed_password=get_password_hash("admin123"),
         role="super_admin",
         is_active=True,
@@ -39,7 +39,7 @@ def seed_admin_users(db: Session):
     
     # Add more test admins
     test_admin = AdminUser(
-        email="test@madrush.com",
+        email="test@Madrush.com.ng",
         hashed_password=get_password_hash("test123"),
         role="admin",
         is_active=True,

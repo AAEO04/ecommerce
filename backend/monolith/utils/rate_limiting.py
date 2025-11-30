@@ -34,7 +34,7 @@ def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         content={
             "error": "Rate limit exceeded",
             "message": f"Rate limit exceeded: {exc.detail}",
-            "retry_after": exc.retry_after
+            "retry_after": getattr(exc, "retry_after", None)
         }
     )
     response = request.app.state.limiter._inject_headers(

@@ -23,9 +23,20 @@ const formatCategory = (value?: string | null) => {
 }
 
 const getPrice = (product: Product) => {
-  if (typeof product.price === 'number') return product.price
+  // Prioritize variant price as it's the actual selling price
   const variantPrice = product.variants?.[0]?.price
-  return typeof variantPrice === 'number' ? Number(variantPrice) : 0
+  if (variantPrice !== undefined && variantPrice !== null) {
+    const price = typeof variantPrice === 'number' ? variantPrice : Number(variantPrice)
+    if (!isNaN(price) && price > 0) return price
+  }
+
+  // Fallback to product.price
+  if (product.price !== undefined && product.price !== null) {
+    const price = typeof product.price === 'number' ? product.price : Number(product.price)
+    if (!isNaN(price) && price > 0) return price
+  }
+
+  return 0
 }
 
 export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
@@ -40,7 +51,8 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 640) setItemsPerView(1)
+      // On mobile, show all items for native scrolling
+      if (window.innerWidth < 640) setItemsPerView(99)
       else if (window.innerWidth < 1024) setItemsPerView(2)
       else if (window.innerWidth < 1440) setItemsPerView(3)
       else setItemsPerView(4)
@@ -125,13 +137,13 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
             {filters.map((filter) => (
               <button
                 key={filter}
-                aria-pressed={activeFilter === filter}
-                className={`rounded-full border px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition ${
-                  activeFilter === filter
-                    ? 'border-electric-volt-green bg-electric-volt-green text-black shadow-[0_10px_30px_rgba(173,255,0,0.35)]'
-                    : 'border-white/30 text-white/70 hover:border-electric-volt-green/70'
-                }`}
                 onClick={() => setActiveFilter(filter)}
+                aria-current={activeFilter === filter ? 'true' : 'false'}
+                aria-label={`Filter by ${filter}`}
+                className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${activeFilter === filter
+                  ? 'border-electric-volt-green bg-electric-volt-green text-black shadow-[0_10px_30px_rgba(173,255,0,0.35)]'
+                  : 'border-white/30 text-white/70 hover:border-electric-volt-green/70'
+                  }`}
               >
                 {filter === 'all' ? 'All Drops' : filter.toUpperCase()}
               </button>
@@ -174,7 +186,7 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -120 }}
               transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+              className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 pb-8 -mx-4 px-4 sm:grid sm:grid-cols-2 sm:gap-5 sm:pb-0 sm:mx-0 sm:px-0 lg:grid-cols-3 xl:grid-cols-4"
             >
               {visibleProducts.map((product) => {
                 const primaryImage = product.images?.[0]?.image_url || '/brand-circle.png'
@@ -186,7 +198,7 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
                   <motion.div
                     key={product.id}
                     whileHover={{ y: -8, rotateX: -2 }}
-                    className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-neutral-950/90 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+                    className="min-w-[85vw] snap-center flex-shrink-0 group relative overflow-hidden rounded-[28px] border border-white/10 bg-neutral-950/90 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] sm:min-w-0"
                   >
                     <div className="relative mb-5 aspect-[4/5] overflow-hidden rounded-2xl border border-white/5 bg-black/60">
                       <Image
@@ -225,11 +237,10 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
                         Quick Add
                       </button>
                       <button
-                        aria-pressed={wishlistActive}
+                        aria-label={wishlistActive ? 'Remove from wishlist' : 'Add to wishlist'}
                         onClick={() => toggleWishlist(product)}
-                        className={`rounded-full border p-3 transition ${
-                          wishlistActive ? 'border-red-400 text-red-400' : 'border-white/40 text-white/70'
-                        }`}
+                        className={`rounded-full border p-3 transition ${wishlistActive ? 'border-red-400 text-red-400' : 'border-white/40 text-white/70'
+                          }`}
                       >
                         <Heart className={`h-4 w-4 ${wishlistActive ? 'fill-red-400 text-red-400' : ''}`} />
                       </button>
@@ -246,11 +257,10 @@ export function NewArrivalsCarousel({ products }: NewArrivalsCarouselProps) {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`h-1.5 rounded-full transition-all ${
-                currentIndex === index
-                  ? 'w-14 bg-electric-volt-green shadow-[0_0_25px_rgba(173,255,0,0.6)]'
-                  : 'w-4 bg-white/30'
-              }`}
+              className={`h-1.5 rounded-full transition-all ${currentIndex === index
+                ? 'w-14 bg-electric-volt-green shadow-[0_0_25px_rgba(173,255,0,0.6)]'
+                : 'w-4 bg-white/30'
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

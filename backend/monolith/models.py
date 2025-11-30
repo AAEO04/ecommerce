@@ -59,6 +59,9 @@ class Order(Base):
     payment_reference = Column(String(PAYMENT_REFERENCE_MAX_LENGTH))
     customer_id = Column(Integer, ForeignKey("customers.id"), nullable=False)
     customer = relationship("Customer")
+    customer_name = Column(String(NAME_MAX_LENGTH), nullable=False)
+    customer_email = Column(String(CUSTOMER_EMAIL_MAX_LENGTH), nullable=False)
+    customer_phone = Column(String(CUSTOMER_PHONE_MAX_LENGTH), nullable=False)
     shipping_address = Column(Text, nullable=False)
     billing_address = Column(Text)
     total_amount = Column(Numeric(10, 2), nullable=False)
@@ -69,6 +72,20 @@ class Order(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
+from sqlalchemy.dialects.postgresql import JSONB
+
+class PendingCheckout(Base):
+    __tablename__ = "pending_checkouts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    idempotency_key = Column(String(IDEMPOTENCY_KEY_MAX_LENGTH), unique=True, nullable=False, index=True)
+    payment_reference = Column(String(PAYMENT_REFERENCE_MAX_LENGTH), unique=True, nullable=False, index=True)
+    checkout_data = Column(JSONB, nullable=False)  # JSONB for efficient querying
+    status = Column(String(50), default="pending")  # pending, completed, expired, failed
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+
 
 class OrderItem(Base):
     __tablename__ = "orderitems"
@@ -92,6 +109,7 @@ class Category(Base):
     name = Column(String(CATEGORY_NAME_MAX_LENGTH), nullable=False, unique=True)
     slug = Column(String(CATEGORY_NAME_MAX_LENGTH), nullable=False, unique=True, index=True)
     description = Column(Text)
+    image_url = Column(String(IMAGE_URL_MAX_LENGTH), nullable=True)
     parent_id = Column(Integer, ForeignKey("categories.id"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -169,3 +187,16 @@ class Payment(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     order = relationship("Order", backref="payments")
+
+
+class WebhookEvent(Base):
+    __tablename__ = "webhook_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(String(255), unique=True, nullable=False, index=True)  # Paystack event ID
+    event_type = Column(String(50), nullable=False)  # charge.success, charge.failed, etc.
+    payment_reference = Column(String(PAYMENT_REFERENCE_MAX_LENGTH), index=True)
+    status = Column(String(50), default="processed")  # processed, failed, duplicate
+    raw_data = Column(Text, nullable=False)  # JSON string of full webhook payload
+    processed_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -275,49 +275,32 @@ async def verify_payment(
 @router.get("/callback")
 async def payment_callback(
     reference: str,
-    db: Session = Depends(get_db)
+    trxref: str = None
 ):
     """
     Payment callback endpoint
     
     Paystack redirects here after payment.
-    This endpoint verifies the transaction and redirects to success/failure page.
+    This endpoint redirects to the frontend payment verification page.
     """
     try:
-        # Verify transaction
-        result = paystack_service.verify_transaction(reference)
+        # Use trxref if reference is not provided
+        payment_ref = reference or trxref
         
-        if result["status"] and result["data"]["status"] == "success":
-            # Payment successful
-            payment = db.query(Payment).filter(
-                Payment.reference == reference
-            ).first()
-            
-            if payment:
-                order_id = payment.order_id
-                return {
-                    "status": "success",
-                    "message": "Payment successful",
-                    "reference": reference,
-                    "order_id": order_id,
-                    "redirect_url": f"{settings.FRONTEND_URL}/orders/{order_id}/success"
-                }
-        
-        # Payment failed or not found
-        return {
-            "status": "failed",
-            "message": "Payment verification failed",
-            "reference": reference,
-            "redirect_url": f"{settings.FRONTEND_URL}/payment/failed?ref={reference}"
-        }
+        # Redirect to frontend callback page with reference
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url=f"{settings.FRONTEND_URL}/payment/callback?reference={payment_ref}",
+            status_code=302
+        )
         
     except Exception as e:
         logger.error(f"Error in payment callback: {str(e)}")
-        return {
-            "status": "error",
-            "message": str(e),
-            "redirect_url": f"{settings.FRONTEND_URL}/payment/error"
-        }
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(
+            url=f"{settings.FRONTEND_URL}/payment/callback?error=true",
+            status_code=302
+        )
 
 
 @router.post("/webhook")

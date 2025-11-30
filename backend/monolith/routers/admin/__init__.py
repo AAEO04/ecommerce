@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from . import dashboard, products, orders, categories
+from . import dashboard, products, orders, categories, uploads
 
 router = APIRouter()
 router.include_router(dashboard.router)

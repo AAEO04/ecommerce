@@ -36,8 +36,8 @@ class AdminApiClient {
           // The UI layer should handle this error and redirect to the login page.
           toast.error('Session expired. Please log in again.')
         }
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: 'Authentication expired. Please log in again.',
           isAuthError: true // Add a flag for the UI to check
         }
@@ -50,6 +50,11 @@ class AdminApiClient {
       }
     }
 
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return { success: true, data: {} as T }
+    }
+
     const data = await response.json()
     return { success: true, data }
   }
@@ -59,6 +64,7 @@ class AdminApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
+      console.log(`[AdminApi] Request: ${options.method || 'GET'} ${url}`)
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -170,6 +176,10 @@ class AdminApiClient {
     return this.request<any[]>(`${this.adminApiUrl}/categories/${params}`)
   }
 
+  async getCategory(categoryId: number): Promise<ApiResponse<any>> {
+    return this.request<any>(`${this.adminApiUrl}/categories/${categoryId}`)
+  }
+
   async createCategory(categoryData: {
     name: string
     slug?: string
@@ -271,7 +281,7 @@ class AdminApiClient {
     if (filters?.search) params.append('search', filters.search)
     if (filters?.page) params.append('page', filters.page.toString())
     if (filters?.limit) params.append('limit', filters.limit.toString())
-    
+
     const queryString = params.toString()
     return this.request(`${this.adminApiUrl}/orders/${queryString ? '?' + queryString : ''}`)
   }
@@ -283,7 +293,7 @@ class AdminApiClient {
   async updateOrderStatus(
     orderId: number,
     updates: { status?: string; payment_status?: string; notes?: string }
-  ): Promise<ApiResponse<{message: string}>> {
+  ): Promise<ApiResponse<{ message: string }>> {
     return this.request(`${this.adminApiUrl}/orders/${orderId}/status`, {
       method: 'PUT',
       body: JSON.stringify(updates),

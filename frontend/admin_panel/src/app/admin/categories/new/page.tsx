@@ -11,6 +11,7 @@ import { adminApi } from '@/lib/admin/api'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 
 export default function NewCategoryPage() {
   const [formData, setFormData] = useState({
@@ -29,6 +30,9 @@ export default function NewCategoryPage() {
       .replace(/[\s-]+/g, '-')
   }
 
+  const [imageFile, setImageFile] = useState<File | null>(null)
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -37,10 +41,32 @@ export default function NewCategoryPage() {
       return
     }
 
+    let imageUrl = ''
+
+    if (imageFile) {
+      try {
+        toast.loading('Uploading image...')
+        const uploadResult = await uploadToCloudinary(imageFile, 'madrush/categories')
+        toast.dismiss()
+
+        if (uploadResult.success && uploadResult.url) {
+          imageUrl = uploadResult.url
+        } else {
+          toast.error(uploadResult.error || 'Failed to upload image')
+          return
+        }
+      } catch (error) {
+        toast.dismiss()
+        toast.error('Failed to upload image')
+        return
+      }
+    }
+
     const categoryData = {
       name: formData.name.trim(),
       slug: formData.slug.trim() || generateSlug(formData.name),
       description: formData.description.trim() || undefined,
+      image_url: imageUrl || undefined,
       parent_id: formData.parent_id || undefined,
     }
 
@@ -124,13 +150,31 @@ export default function NewCategoryPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="image" className="text-sm font-semibold text-gray-700">Category Image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImageFile(e.target.files[0])
+                    }
+                  }}
+                  className="cursor-pointer"
+                />
+                <p className="text-sm text-gray-500 mt-1.5">
+                  Upload an image for this category. Recommended size: 800x600px.
+                </p>
+              </div>
+
               <div className="flex justify-end space-x-3 pt-4">
                 <Link href="/admin/categories">
                   <Button type="button" variant="outline" className="px-6">
                     Cancel
                   </Button>
                 </Link>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6"
                 >

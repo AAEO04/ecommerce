@@ -2,12 +2,14 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 from config import settings
-from typing import TYPE_CHECKING, Optional, Dict, Any
+from typing import Optional, Dict
+from utils.mailgun import mailgun_client
+import logging
 import os
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+logger = logging.getLogger(__name__)
 
 # Get the directory of the current file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,39 +21,50 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
-if TYPE_CHECKING:
-    import models
-
 def send_email(
     to_email: str,
     subject: str,
     html_content: str,
     text_content: Optional[str] = None,
-    attachments: Optional[Dict[str, bytes]] = None
+    tags: Optional[list] = None,
+    use_mailgun: bool = True
 ) -> bool:
     """
-    Send email notification via SMTP
-
+    Send email notification
+    
     Args:
         to_email: Recipient email address
         subject: Email subject line
         html_content: HTML body content
         text_content: Plain text fallback
-        attachments: Dict mapping filename to file bytes
-
+        tags: Email tags for tracking (Mailgun only)
+        use_mailgun: Use Mailgun API (True) or SMTP fallback (False)
+        
     Returns:
         True if email sent successfully, False otherwise
-
-    Raises:
-        ValueError: If to_email is invalid
-        SMTPException: If SMTP server error occurs
     """
     if settings.NOTIFICATION_MOCK:
-        print(f"Email notification (mock): {to_email} - {subject}")
+        print(f"📧 Email notification (mock): {to_email} - {subject}")
         return True
     
+    # Try Mailgun first
+    if use_mailgun and settings.MAILGUN_API_KEY:
+        result = mailgun_client.send_email(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content,
+            text_content=text_content,
+            tags=tags
+        )
+        
+        if result.get("success"):
+            return True
+        else:
+            logger.warning(f"Mailgun failed, falling back to SMTP: {result.get('error')}")
+    
+    # Fallback to SMTP
     if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
-        print("SMTP credentials are not set. Email not sent.")
+        logger.error("Neither Mailgun nor SMTP credentials are configured")
         return False
     
     try:
@@ -67,24 +80,16 @@ def send_email(
         html_part = MIMEText(html_content, 'html')
         msg.attach(html_part)
 
-        if attachments:
-            for filename, file_bytes in attachments.items():
-                part = MIMEBase('application', 'octet-stream')
-                part.set_payload(file_bytes)
-                encoders.encode_base64(part)
-                part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
-                msg.attach(part)
-
         server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
         server.starttls()
         server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
         server.send_message(msg)
         server.quit()
         
-        print(f"Email sent successfully to {to_email}")
+        logger.info(f"Email sent via SMTP to {to_email}")
         return True
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {e}")
+        logger.error(f"Failed to send email to {to_email}: {e}")
         return False
 
 def send_sms(to_phone: str, message: str) -> bool:
@@ -165,7 +170,17 @@ def send_order_confirmation(order):
     """Send order confirmation email and SMS"""
     # Send email
     subject, html_content, text_content = generate_order_confirmation_email(order)
-    send_email(order.customer_email, subject, html_content, text_content)
+    
+    # Add tags for better tracking
+    tags = ["order-confirmation", f"order-{order.order_number}"]
+    
+    send_email(
+        to_email=order.customer_email,
+        subject=subject,
+        html_content=html_content,
+        text_content=text_content,
+        tags=tags
+    )
     
     # Send SMS if phone number is available
     if order.customer_phone:

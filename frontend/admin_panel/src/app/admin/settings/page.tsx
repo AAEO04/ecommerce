@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Settings, Store, CreditCard, Truck, Bell, Database, 
-  Check, X, RefreshCw, ShoppingBag, Info, Building, Lock, Eye, EyeOff 
+import {
+  Settings, Store, CreditCard, Truck, Bell, Database,
+  Check, X, RefreshCw, ShoppingBag, Info, Building, Lock, Eye, EyeOff
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -15,7 +15,7 @@ export default function SettingsPage() {
   const [storeSettings, setStoreSettings] = useState({
     storeName: 'MAD RUSH',
     tagline: 'NO CHILLS, Just Style',
-    contactEmail: 'contact@madrush.com',
+    contactEmail: 'contact@Madrush.com.ng',
     phoneNumber: '+1 (555) 123-4567',
     businessAddress: '123 Fashion Street, Style City, SC 12345'
   })
@@ -151,11 +151,10 @@ export default function SettingsPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                          activeTab === tab.id
-                            ? 'bg-gray-900 text-white'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
+                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === tab.id
+                          ? 'bg-gray-900 text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                          }`}
                       >
                         <Icon className="mr-3 h-5 w-5" />
                         {tab.label}
@@ -182,7 +181,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={storeSettings.storeName}
-                      onChange={(e) => setStoreSettings({...storeSettings, storeName: e.target.value})}
+                      onChange={(e) => setStoreSettings({ ...storeSettings, storeName: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
@@ -191,7 +190,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={storeSettings.tagline}
-                      onChange={(e) => setStoreSettings({...storeSettings, tagline: e.target.value})}
+                      onChange={(e) => setStoreSettings({ ...storeSettings, tagline: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
@@ -200,7 +199,7 @@ export default function SettingsPage() {
                     <input
                       type="email"
                       value={storeSettings.contactEmail}
-                      onChange={(e) => setStoreSettings({...storeSettings, contactEmail: e.target.value})}
+                      onChange={(e) => setStoreSettings({ ...storeSettings, contactEmail: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
@@ -209,7 +208,7 @@ export default function SettingsPage() {
                     <input
                       type="tel"
                       value={storeSettings.phoneNumber}
-                      onChange={(e) => setStoreSettings({...storeSettings, phoneNumber: e.target.value})}
+                      onChange={(e) => setStoreSettings({ ...storeSettings, phoneNumber: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
@@ -217,12 +216,12 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Business Address</label>
                     <textarea
                       value={storeSettings.businessAddress}
-                      onChange={(e) => setStoreSettings({...storeSettings, businessAddress: e.target.value})}
+                      onChange={(e) => setStoreSettings({ ...storeSettings, businessAddress: e.target.value })}
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => handleSave('store')}
                     disabled={saveStatus === 'saving'}
                     className="admin-btn-primary"
@@ -248,7 +247,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={orderSettings.orderPrefix}
-                      onChange={(e) => setOrderSettings({...orderSettings, orderPrefix: e.target.value})}
+                      onChange={(e) => setOrderSettings({ ...orderSettings, orderPrefix: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="ORD"
                     />
@@ -258,7 +257,7 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Default Order Status</label>
                     <select
                       value={orderSettings.defaultStatus}
-                      onChange={(e) => setOrderSettings({...orderSettings, defaultStatus: e.target.value})}
+                      onChange={(e) => setOrderSettings({ ...orderSettings, defaultStatus: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     >
                       <option value="pending">Pending</option>
@@ -270,7 +269,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       id="autoEmail"
                       checked={orderSettings.autoEmailNotification}
-                      onChange={(e) => setOrderSettings({...orderSettings, autoEmailNotification: e.target.checked})}
+                      onChange={(e) => setOrderSettings({ ...orderSettings, autoEmailNotification: e.target.checked })}
                       className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                     />
                     <div className="flex-1">
@@ -285,7 +284,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       id="emailConfirm"
                       checked={orderSettings.requireEmailConfirmation}
-                      onChange={(e) => setOrderSettings({...orderSettings, requireEmailConfirmation: e.target.checked})}
+                      onChange={(e) => setOrderSettings({ ...orderSettings, requireEmailConfirmation: e.target.checked })}
                       className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                     />
                     <div className="flex-1">
@@ -295,7 +294,7 @@ export default function SettingsPage() {
                       <p className="text-sm text-gray-500">Send order confirmation emails to customers</p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => handleSave('orders')}
                     disabled={saveStatus === 'saving'}
                     className="admin-btn-primary"
@@ -329,7 +328,7 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Method</label>
                     <select
                       value={shippingSettings.shippingMethod}
-                      onChange={(e) => setShippingSettings({...shippingSettings, shippingMethod: e.target.value})}
+                      onChange={(e) => setShippingSettings({ ...shippingSettings, shippingMethod: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     >
                       <option value="manual">Manual/Local Delivery</option>
@@ -341,7 +340,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={shippingSettings.estimatedDays}
-                      onChange={(e) => setShippingSettings({...shippingSettings, estimatedDays: e.target.value})}
+                      onChange={(e) => setShippingSettings({ ...shippingSettings, estimatedDays: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
@@ -349,13 +348,13 @@ export default function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Instructions</label>
                     <textarea
                       value={shippingSettings.shippingInstructions}
-                      onChange={(e) => setShippingSettings({...shippingSettings, shippingInstructions: e.target.value})}
+                      onChange={(e) => setShippingSettings({ ...shippingSettings, shippingInstructions: e.target.value })}
                       rows={4}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                       placeholder="Instructions shown to customers"
                     />
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => handleSave('shipping')}
                     disabled={saveStatus === 'saving'}
                     className="admin-btn-primary"
@@ -423,11 +422,10 @@ export default function SettingsPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Public Key Status
                         </label>
-                        <div className={`flex items-center gap-2 p-3 border rounded-lg ${
-                          paymentSettings.paystackPublicKey !== 'Not configured' 
-                            ? 'bg-green-50 border-green-200' 
-                            : 'bg-orange-50 border-orange-200'
-                        }`}>
+                        <div className={`flex items-center gap-2 p-3 border rounded-lg ${paymentSettings.paystackPublicKey !== 'Not configured'
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-orange-50 border-orange-200'
+                          }`}>
                           {paymentSettings.paystackPublicKey !== 'Not configured' ? (
                             <>
                               <Check className="h-5 w-5 text-green-600" />
@@ -444,7 +442,7 @@ export default function SettingsPage() {
                           Set NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY in environment variables
                         </p>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Supported Payment Channels
@@ -490,7 +488,7 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           value={paymentSettings.bankName}
-                          onChange={(e) => setPaymentSettings({...paymentSettings, bankName: e.target.value})}
+                          onChange={(e) => setPaymentSettings({ ...paymentSettings, bankName: e.target.value })}
                           placeholder="e.g., Access Bank"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
@@ -500,7 +498,7 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           value={paymentSettings.accountNumber}
-                          onChange={(e) => setPaymentSettings({...paymentSettings, accountNumber: e.target.value})}
+                          onChange={(e) => setPaymentSettings({ ...paymentSettings, accountNumber: e.target.value })}
                           placeholder="0123456789"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
@@ -510,7 +508,7 @@ export default function SettingsPage() {
                         <input
                           type="text"
                           value={paymentSettings.accountName}
-                          onChange={(e) => setPaymentSettings({...paymentSettings, accountName: e.target.value})}
+                          onChange={(e) => setPaymentSettings({ ...paymentSettings, accountName: e.target.value })}
                           placeholder="MAD RUSH E-commerce"
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         />
@@ -518,7 +516,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <Button 
+                  <Button
                     onClick={() => handleSave('payment')}
                     disabled={saveStatus === 'saving'}
                     className="admin-btn-primary"
@@ -546,7 +544,7 @@ export default function SettingsPage() {
                         <Lock className="h-5 w-5 text-orange-500" />
                         Change Password
                       </h3>
-                      
+
                       {passwordError && (
                         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                           <X className="h-5 w-5 text-red-600 mt-0.5" />
@@ -577,7 +575,7 @@ export default function SettingsPage() {
                             <input
                               type={showCurrentPassword ? 'text' : 'password'}
                               value={passwordSettings.currentPassword}
-                              onChange={(e) => setPasswordSettings({...passwordSettings, currentPassword: e.target.value})}
+                              onChange={(e) => setPasswordSettings({ ...passwordSettings, currentPassword: e.target.value })}
                               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                               placeholder="Enter your current password"
                             />
@@ -600,7 +598,7 @@ export default function SettingsPage() {
                             <input
                               type={showNewPassword ? 'text' : 'password'}
                               value={passwordSettings.newPassword}
-                              onChange={(e) => setPasswordSettings({...passwordSettings, newPassword: e.target.value})}
+                              onChange={(e) => setPasswordSettings({ ...passwordSettings, newPassword: e.target.value })}
                               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                               placeholder="Enter your new password"
                             />
@@ -624,7 +622,7 @@ export default function SettingsPage() {
                             <input
                               type={showConfirmPassword ? 'text' : 'password'}
                               value={passwordSettings.confirmPassword}
-                              onChange={(e) => setPasswordSettings({...passwordSettings, confirmPassword: e.target.value})}
+                              onChange={(e) => setPasswordSettings({ ...passwordSettings, confirmPassword: e.target.value })}
                               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                               placeholder="Confirm your new password"
                             />
@@ -638,7 +636,7 @@ export default function SettingsPage() {
                           </div>
                         </div>
 
-                        <Button 
+                        <Button
                           onClick={handlePasswordChange}
                           disabled={saveStatus === 'saving'}
                           className="admin-btn-primary"
@@ -690,7 +688,7 @@ export default function SettingsPage() {
                       </div>
                       <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Online</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">

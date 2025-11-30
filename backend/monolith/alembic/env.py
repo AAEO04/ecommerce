@@ -13,14 +13,20 @@ from alembic import context
 config = context.config
 
 # Load environment variables from .env file
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-load_dotenv(os.path.join(project_root, '.env'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+env_path = os.path.join(project_root, '.env')
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+    print(f"[OK] Loaded environment variables from: {env_path}")
+else:
+    print(f"[WARNING] .env file not found at: {env_path}")
 
 # Manually set the sqlalchemy.url in the config object
 database_url = os.getenv('DATABASE_URL')
 if not database_url:
     raise ValueError("DATABASE_URL environment variable not set or is empty. "
                      "Please check your .env file in the project root.")
+print(f"[DB] Using database URL: {database_url}")
 config.set_main_option('sqlalchemy.url', database_url)
 
 # Interpret the config file for Python logging.
@@ -36,6 +42,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import Base
+import models  # Import models so alembic can detect them
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

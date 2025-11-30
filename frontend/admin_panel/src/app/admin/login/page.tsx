@@ -89,7 +89,7 @@ export default function AdminLogin() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@madrush.com"
+                  placeholder="admin@Madrush.com.ng"
                   required
                   disabled={isLoading}
                 />

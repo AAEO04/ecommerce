@@ -16,7 +16,7 @@ Write-Host ""
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host "  Backend API:      http://localhost:8000" -ForegroundColor Green
 Write-Host "  API Docs:         http://localhost:8000/docs" -ForegroundColor Green
-Write-Host "  Admin:            admin@madrush.com / admin123" -ForegroundColor Yellow
+Write-Host "  Admin:            admin@Madrush.com.ng / admin123" -ForegroundColor Yellow
 Write-Host "=" * 70 -ForegroundColor Cyan
 Write-Host ""
 

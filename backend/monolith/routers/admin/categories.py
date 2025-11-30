@@ -33,6 +33,25 @@ def get_admin_categories(
     categories = query.order_by(models.Category.name).all()
     return [schemas.CategoryResponse.from_orm(category) for category in categories]
 
+@router.get("/{category_id}", response_model=schemas.CategoryResponse)
+def get_category(
+    category_id: int,
+    current_admin: dict = Depends(auth.get_current_admin_from_cookie),
+    db: Session = Depends(get_db)
+):
+    """Get a single category by ID"""
+    category = db.query(models.Category).filter(
+        models.Category.id == category_id
+    ).first()
+    
+    if not category:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
+        )
+    
+    return schemas.CategoryResponse.from_orm(category)
+
 @router.post("/", response_model=schemas.CategoryResponse, status_code=status.HTTP_201_CREATED)
 def create_category(
     category_data: schemas.CategoryCreate,
@@ -71,6 +90,7 @@ def create_category(
             name=category_data.name,
             slug=slug,
             description=category_data.description,
+            image_url=category_data.image_url,
             parent_id=category_data.parent_id,
             is_active=True
         )
@@ -145,6 +165,8 @@ def update_category(
             category.slug = category_data.slug
         if category_data.description is not None:
             category.description = category_data.description
+        if category_data.image_url is not None:
+            category.image_url = category_data.image_url
         if category_data.parent_id is not None:
             category.parent_id = category_data.parent_id if category_data.parent_id > 0 else None
         if category_data.is_active is not None:

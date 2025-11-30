@@ -15,24 +15,35 @@ import Image from "next/image"
 import Link from "next/link"
 import { formatNGN } from "@/utils/currency"
 import toast from "react-hot-toast"
+import { useState, useEffect } from "react"
 
 export function Cart() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const items = useCartStore((s) => s.items)
   const removeItem = useCartStore((s) => s.removeItem)
   const updateQuantity = useCartStore((s) => s.updateQuantity)
   const getTotalCount = useCartStore((s) => s.getTotalCount)
   const getTotal = useCartStore((s) => s.getTotal)
-  
+
   const totalCount = getTotalCount()
   const total = getTotal()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleRemove = (id: string, name?: string) => {
     removeItem(id)
     toast.success(`${name || 'Item'} removed from cart`)
   }
 
+  const handleCheckoutClick = () => {
+    setIsOpen(false)
+  }
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -40,7 +51,7 @@ export function Cart() {
           className="relative h-11 w-11 rounded-full border border-white/20 bg-white/5 text-white hover:border-electric-volt-green hover:bg-electric-volt-green/10"
         >
           <ShoppingCart className="h-5 w-5" />
-          {totalCount > 0 && (
+          {mounted && totalCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border border-black bg-electric-volt-green text-[10px] font-black text-black">
               {totalCount}
             </span>
@@ -90,6 +101,13 @@ export function Cart() {
                     <div>
                       <p className="text-[11px] uppercase tracking-[0.4em] text-white/40">Drop #{item.productId}</p>
                       <p className="line-clamp-2 text-sm font-semibold">{item.name}</p>
+                      {(item.size || item.color) && (
+                        <p className="mt-1 text-xs text-white/60">
+                          {item.size && <span>Size: {item.size}</span>}
+                          {item.size && item.color && <span className="mx-2">•</span>}
+                          {item.color && <span>Color: {item.color}</span>}
+                        </p>
+                      )}
                       <p className="text-lg font-black text-electric-volt-green">{formatNGN(item.price)}</p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -136,12 +154,12 @@ export function Cart() {
               </div>
               <p className="text-xs text-white/50">Shipping + taxes finalize in checkout.</p>
               <div className="space-y-3">
-                <Link href="/checkout" className="block">
+                <Link href="/checkout" className="block" onClick={handleCheckoutClick}>
                   <Button className="w-full rounded-full border border-electric-volt-green bg-electric-volt-green px-6 py-4 text-sm font-black uppercase tracking-[0.4em] text-black transition hover:-translate-y-1">
                     Launch checkout
                   </Button>
                 </Link>
-                <Link href="/cart" className="block">
+                <Link href="/cart" className="block" onClick={handleCheckoutClick}>
                   <Button variant="ghost" className="w-full rounded-full border border-white/20 px-6 py-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/80 hover:border-white/50">
                     View full manifest
                   </Button>

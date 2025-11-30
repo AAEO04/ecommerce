@@ -1,10 +1,16 @@
+import dynamic from 'next/dynamic'
 import { Hero } from '@/components/features/Hero'
-import { BestSellers } from '@/components/features/BestSellers'
-import { Categories } from '@/components/Categories'
-import { Newsletter } from '@/components/Newsletter'
-import { BrandStory } from '@/components/BrandStory'
-import { NewArrivalsCarousel } from '@/components/NewArrivalsCarousel'
 import { fetchBestSellers, fetchProducts } from '@/lib/api'
+import { SectionReveal } from '@/components/ui/SectionReveal'
+
+// Lazy load below-the-fold components
+const BestSellers = dynamic(() => import('@/components/features/BestSellers').then(mod => mod.BestSellers))
+const Categories = dynamic(() => import('@/components/Categories').then(mod => mod.Categories))
+const Newsletter = dynamic(() => import('@/components/Newsletter').then(mod => mod.Newsletter))
+const BrandStory = dynamic(() => import('@/components/BrandStory').then(mod => mod.BrandStory))
+const NewArrivalsCarousel = dynamic(() => import('@/components/NewArrivalsCarousel').then(mod => mod.NewArrivalsCarousel))
+const CommunityFeed = dynamic(() => import('@/components/CommunityFeed').then(mod => mod.CommunityFeed))
+const FAQ = dynamic(() => import('@/components/FAQ').then(mod => mod.FAQ))
 
 export default async function Home() {
   const products = await fetchProducts()
@@ -20,12 +26,40 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
+      {/* Hero is critical for LCP, so we keep it static */}
       <Hero featuredProducts={featured} />
-      <BrandStory />
-      <NewArrivalsCarousel products={newArrivals} />
-      <BestSellers bestSellers={bestSellers} />
-      <Categories />
-      <Newsletter />
+
+      <SectionReveal>
+        <Categories />
+      </SectionReveal>
+
+      <SectionReveal>
+        <BrandStory />
+      </SectionReveal>
+
+      <SectionReveal>
+        <NewArrivalsCarousel products={newArrivals} />
+      </SectionReveal>
+
+      <SectionReveal>
+        <BestSellers bestSellers={bestSellers} />
+      </SectionReveal>
+
+      <SectionReveal>
+        <CommunityFeed />
+      </SectionReveal>
+
+      <SectionReveal>
+        <Categories />
+      </SectionReveal>
+
+      <SectionReveal>
+        <FAQ />
+      </SectionReveal>
+
+      <SectionReveal>
+        <Newsletter />
+      </SectionReveal>
     </div>
   )
 }

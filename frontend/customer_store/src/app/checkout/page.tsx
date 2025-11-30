@@ -72,24 +72,37 @@ export default function CheckoutPage() {
       customer_email: email,
       customer_phone: phone,
       shipping_address: fullAddress,
-      payment_method: paymentMethod
+      payment_method: paymentMethod,
+      idempotency_key: crypto.randomUUID()
     }
 
     try {
       const res = await checkout(payload)
 
-      // Store order ID and show payment
-      if (res && res.order_id) {
-        setOrderId(res.order_id)
-        setShowPayment(true)
-        toast.success('Order created! Please complete payment.')
+      // Check if order is already completed
+      if (res.payment_completed) {
+        setOrderId(res.order_id!)
+        setSuccess(true)
+        toast.success('Order already completed!')
+        clear()
+        return
+      }
+
+      // Redirect to Paystack payment page
+      if (res.authorization_url) {
+        toast.success('Redirecting to payment...')
+        // Store payment reference in sessionStorage for verification after redirect
+        sessionStorage.setItem('payment_reference', res.payment_reference)
+        sessionStorage.setItem('checkout_email', email)
+
+        // Redirect to Paystack
+        window.location.href = res.authorization_url
       } else {
-        throw new Error('Order ID not returned')
+        throw new Error('Payment URL not returned')
       }
     } catch (error) {
       console.error('Checkout failed:', error)
       toast.error('Checkout failed. Please try again.')
-    } finally {
       setLoading(false)
       setIsSubmitting(false)
     }
@@ -166,8 +179,8 @@ export default function CheckoutPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className={`flex h-12 w-12 items-center justify-center rounded-full border-2 text-base font-semibold transition ${currentStep >= step.number
-                              ? 'border-electric-volt-green text-electric-volt-green'
-                              : 'border-white/15 text-white/40'
+                            ? 'border-electric-volt-green text-electric-volt-green'
+                            : 'border-white/15 text-white/40'
                             }`}
                         >
                           {currentStep > step.number ? <Check className="h-5 w-5" /> : step.number}
@@ -471,6 +484,13 @@ export default function CheckoutPage() {
                     )}
                     <div className="flex-1 text-sm">
                       <p className="font-semibold">{item.name}</p>
+                      {(item.size || item.color) && (
+                        <p className="text-xs text-white/50">
+                          {item.size && <span>Size: {item.size}</span>}
+                          {item.size && item.color && <span className="mx-1">•</span>}
+                          {item.color && <span>Color: {item.color}</span>}
+                        </p>
+                      )}
                       <p className="text-white/50">Qty · {item.quantity}</p>
                       <p className="text-electric-volt-green font-semibold">
                         {formatNGN(item.price * item.quantity)}

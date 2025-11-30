@@ -17,15 +17,18 @@ export async function fetchWithRetry(
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         const errorMessage = errorData.detail || `Request failed: ${res.statusText}`;
-        if (res.status >= 500) {
-          throw new ApiError(res.status, errorMessage);
-        }
-        handleApiError(new ApiError(res.status, errorMessage));
+        throw new ApiError(res.status, errorMessage);
       }
 
       return res.json();
     } catch (error) {
       lastError = error;
+
+      // Don't retry client errors (4xx)
+      if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
+        throw error;
+      }
+
       if (i < MAX_RETRIES - 1) {
         const delay = Math.min(INITIAL_DELAY * Math.pow(2, i) + Math.random() * 1000, MAX_DELAY);
         await new Promise((resolve) => setTimeout(resolve, delay));

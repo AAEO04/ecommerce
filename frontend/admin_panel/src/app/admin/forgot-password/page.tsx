@@ -94,7 +94,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="admin@madrush.com"
+                  placeholder="admin@Madrush.com.ng"
                   required
                   disabled={isResetting}
                 />

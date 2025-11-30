@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 import models
 import schemas
 from database import get_db
+from config import settings
 from utils.payment import process_payment
 from utils import auth
 from utils.notifications import send_order_confirmation
@@ -27,6 +28,10 @@ def generate_order_number() -> str:
     unique_id = str(uuid.uuid4())[:8].upper()
     return f"ORD-{timestamp}-{unique_id}"
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @router.post("/checkout")
 @checkout_rate_limit()
 def process_checkout(
@@ -34,16 +39,20 @@ def process_checkout(
     checkout_data: schemas.CheckoutRequest,
     db: Session = Depends(get_db)
 ):
+    logger.info(f"Initializing checkout: {checkout_data.dict()}")
     """
-    Process a customer's checkout request with payment integration.
+    Initialize checkout and return Paystack payment URL.
+    Order will be created after payment confirmation via webhook.
     """
     try:
-        # Check for existing order with row lock
+        logger.info("Step 1: Checking for existing orders/pending checkouts")
+        # Check for existing pending checkout or completed order
         if checkout_data.idempotency_key:
+            # Check if order already exists
             existing_order = db.query(models.Order).filter(
                 models.Order.idempotency_key == checkout_data.idempotency_key
-            ).with_for_update(skip_locked=True).first()
-
+            ).first()
+            
             if existing_order:
                 return {
                     "message": "Order already processed",
@@ -51,116 +60,117 @@ def process_checkout(
                     "order_number": existing_order.order_number,
                     "payment_reference": existing_order.payment_reference,
                     "total_amount": float(existing_order.total_amount),
-                    "status": existing_order.status
+                    "status": existing_order.status,
+                    "payment_completed": True
+                }
+            
+            # Check for existing pending checkout
+            existing_pending = db.query(models.PendingCheckout).filter(
+                models.PendingCheckout.idempotency_key == checkout_data.idempotency_key,
+                models.PendingCheckout.status == "pending"
+            ).first()
+            
+            if existing_pending:
+                # Return existing payment URL
+                import json
+                stored_data = existing_pending.checkout_data
+                return {
+                    "message": "Payment already initialized",
+                    "payment_reference": existing_pending.payment_reference,
+                    "authorization_url": stored_data.get("authorization_url"),
+                    "access_code": stored_data.get("access_code"),
+                    "total_amount": stored_data.get("total_amount")
                 }
 
-        # Generate order number and payment reference
-        order_number = generate_order_number()
+        logger.info("Step 2: Generating payment reference")
+        # Generate payment reference
         payment_reference = f"pay_{str(uuid.uuid4()).replace('-', '')}"
         
         total_amount = Decimal('0.0')
-        order_items_to_create = []
+        cart_items = []
 
-        # 1. Validate stock and calculate total price with atomic operations
+        logger.info("Step 3: Validating stock and calculating total")
+        # 1. Validate stock and calculate total
         for item in checkout_data.cart:
-            # Use atomic update to check and reserve stock
-            updated_rows = db.query(models.ProductVariant).filter(
-                models.ProductVariant.id == item.variant_id,
-                models.ProductVariant.is_active == True,
-                models.ProductVariant.stock_quantity >= item.quantity
-            ).update(
-                {"stock_quantity": models.ProductVariant.stock_quantity - item.quantity},
-                synchronize_session='fetch'
-            )
-            
-            if updated_rows == 0:
-                # Check if variant exists
-                variant = db.query(models.ProductVariant).filter(
-                    models.ProductVariant.id == item.variant_id,
-                    models.ProductVariant.is_active == True
-                ).first()
-                
-                if not variant:
-                    raise ProductNotFoundException(product_id=item.variant_id)
-                else:
-                    raise InsufficientStockException(
-                        variant_id=variant.id,
-                        available=variant.stock_quantity,
-                        requested=item.quantity
-                    )
-            
-            # Get the updated variant
             variant = db.query(models.ProductVariant).filter(
-                models.ProductVariant.id == item.variant_id
+                models.ProductVariant.id == item.variant_id,
+                models.ProductVariant.is_active == True
             ).first()
-
+            
+            if not variant:
+                logger.error(f"Variant not found: {item.variant_id}")
+                raise ProductNotFoundException(product_id=item.variant_id)
+            
+            if variant.stock_quantity < item.quantity:
+                logger.error(f"Insufficient stock for variant {variant.id}: available={variant.stock_quantity}, requested={item.quantity}")
+                raise InsufficientStockException(
+                    variant_id=variant.id,
+                    available=variant.stock_quantity,
+                    requested=item.quantity
+                )
+            
             # Calculate item total
             item_total = variant.price * item.quantity
             total_amount += item_total
             
-            # Prepare order item data
-            order_items_to_create.append({
+            cart_items.append({
                 "variant_id": variant.id,
                 "quantity": item.quantity,
-                "unit_price": variant.price,
-                "total_price": item_total
+                "unit_price": float(variant.price),
+                "total_price": float(item_total)
             })
+        
+        logger.info(f"Step 4: Stock validated. Total amount: {total_amount}")
 
-        # 2. Process payment
+        # 2. Initialize Paystack payment
+        logger.info(f"Step 5: Initializing Paystack payment for amount: {total_amount}")
+        logger.info(f"Payment mode: {settings.PAYMENT_MODE}")
+        logger.info(f"Paystack secret key configured: {bool(settings.PAYSTACK_SECRET_KEY)}")
+        
         payment_result = process_payment(
             amount=total_amount,
             email=checkout_data.customer_email,
-            reference=payment_reference
+            reference=payment_reference,
+            callback_url=f"{request.base_url}api/payment/callback"
         )
         
+        logger.info(f"Payment result: {payment_result}")
+        
         if payment_result["status"] != "success":
-            raise PaymentFailedException(reason=payment_result.get('message', 'Unknown error'))
+            logger.error(f"Payment initialization failed: {payment_result}")
+            raise PaymentFailedException(reason=payment_result.get('message', 'Payment initialization failed'))
 
-        # 3. Create the main Order record
-        new_order = models.Order(
-            order_number=order_number,
+        # 3. Store pending checkout data
+        import json
+        from datetime import timedelta
+        
+        pending_data = {
+            "checkout_data": checkout_data.dict(),
+            "cart_items": cart_items,
+            "total_amount": float(total_amount),
+            "authorization_url": payment_result.get("authorization_url"),
+            "access_code": payment_result.get("access_code"),
+            "currency": "NGN"  # Add currency to pending data
+        }
+        
+        pending_checkout = models.PendingCheckout(
             idempotency_key=checkout_data.idempotency_key,
-            status="confirmed",
-            payment_status="paid",
-            payment_method=checkout_data.payment_method,
             payment_reference=payment_reference,
-            customer_name=checkout_data.customer_name,
-            customer_email=checkout_data.customer_email,
-            customer_phone=checkout_data.customer_phone,
-            shipping_address=checkout_data.shipping_address,
-            billing_address=checkout_data.billing_address or checkout_data.shipping_address,
-            total_amount=total_amount,
-            shipping_cost=Decimal('0.0'),
-            tax_amount=Decimal('0.0'),
-            notes=checkout_data.notes
+            checkout_data=pending_data,
+            status="pending",
+            expires_at=datetime.now() + timedelta(hours=1)
         )
-        db.add(new_order)
-        db.flush()  # Get the order ID
-
-        # 4. Create the OrderItem records
-        for item_data in order_items_to_create:
-            order_item = models.OrderItem(
-                order_id=new_order.id,
-                **item_data
-            )
-            db.add(order_item)
-
-        # 5. Stock already updated atomically in step 1
-
-        # 6. Commit the entire transaction
+        db.add(pending_checkout)
         db.commit()
-        db.refresh(new_order)
-
-        # 7. Send notification
-        send_order_confirmation(new_order)
+        
+        logger.info(f"Checkout initialized. Payment reference: {payment_reference}")
 
         return {
-            "message": "Order placed successfully!",
-            "order_id": new_order.id,
-            "order_number": order_number,
+            "message": "Payment initialized successfully",
             "payment_reference": payment_reference,
-            "total_amount": float(total_amount),
-            "status": "confirmed"
+            "authorization_url": payment_result.get("authorization_url"),
+            "access_code": payment_result.get("access_code"),
+            "total_amount": float(total_amount)
         }
         
     except IntegrityError as e:

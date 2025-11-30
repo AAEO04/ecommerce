@@ -13,24 +13,24 @@ class Settings:
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", "6379"))
     REDIS_DB: int = int(os.getenv("REDIS_DB", "0"))
-
-    # RabbitMQ (optional for message queuing)
-    RABBITMQ_HOST: str = os.getenv("RABBITMQ_HOST", "localhost")
-    RABBITMQ_PORT: int = int(os.getenv("RABBITMQ_PORT", "5672"))
-    RABBITMQ_USER: str = os.getenv("RABBITMQ_USER", "madrush")
-    RABBITMQ_PASSWORD: str = os.getenv("RABBITMQ_PASSWORD")
     
     # Payment (Paystack) - REQUIRED for production
     PAYSTACK_SECRET_KEY: str = os.getenv("PAYSTACK_SECRET_KEY", "")
     PAYSTACK_PUBLIC_KEY: str = os.getenv("PAYSTACK_PUBLIC_KEY", "")
     PAYMENT_MODE: str = os.getenv("PAYMENT_MODE", "production")
     
+    # Mailgun Configuration
+    MAILGUN_API_KEY: str = os.getenv("MAILGUN_API_KEY", "")
+    MAILGUN_DOMAIN: str = os.getenv("MAILGUN_DOMAIN", "")
+    MAILGUN_REGION: str = os.getenv("MAILGUN_REGION", "us")  # 'us' or 'eu'
+    SENDER_NAME: str = os.getenv("SENDER_NAME", "MAD RUSH")
+
     # Email (SMTP)
     SMTP_HOST: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))
     SMTP_USERNAME: str = os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "noreply@madrush.com")
+    SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "noreply@Madrush.com.ng")
     NOTIFICATION_MOCK: bool = os.getenv("NOTIFICATION_MOCK", "false").lower() == "true"
     
     # SMS (Twilio - optional)

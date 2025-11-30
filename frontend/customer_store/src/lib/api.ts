@@ -3,11 +3,21 @@ import { fetchWithRetry } from '@/lib/fetchWithRetry';
 
 const API_BASE = CONFIG.API_BASE;
 
+export interface ProductVariant {
+  id: number;
+  size: string;
+  color?: string;
+  price: number;
+  stock_quantity: number;
+  sku?: string;
+  is_active: boolean;
+}
+
 export interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
+  price: number; // Kept for backward compatibility - represents base/first variant price
   images: Array<{
     image_url: string;
     alt_text?: string;
@@ -15,7 +25,7 @@ export interface Product {
     is_primary?: boolean;
   }>;
   category?: string;
-  variants: { price: number }[];
+  variants: ProductVariant[];
 }
 
 export interface BestSellerProduct {
@@ -47,6 +57,7 @@ export interface Category {
   name: string;
   slug: string;
   description?: string;
+  image_url?: string;
   is_active: boolean;
 }
 
@@ -63,12 +74,30 @@ export interface CheckoutPayload {
   customer_phone: string;
   shipping_address: string;
   payment_method: string;
+  idempotency_key: string;
 }
 
-export async function checkout(payload: CheckoutPayload) {
+export interface CheckoutResponse {
+  message: string;
+  payment_reference: string;
+  authorization_url?: string;
+  access_code?: string;
+  total_amount: number;
+  payment_completed?: boolean;
+  order_id?: number;
+  order_number?: string;
+}
+
+export async function checkout(payload: CheckoutPayload): Promise<CheckoutResponse> {
   return fetchWithRetry(`${API_BASE}/api/orders/checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
+  });
+}
+
+export async function verifyPayment(reference: string) {
+  return fetchWithRetry(`${API_BASE}/api/payment/verify/${reference}`, {
+    method: 'GET',
   });
 }

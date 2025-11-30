@@ -28,7 +28,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Orders & Shipping',
     question: 'What if my order is delayed?',
-    answer: 'If your order is taking longer than expected, please contact our customer service team at hello@madrush.com with your order number, and we\'ll investigate immediately.'
+    answer: 'If your order is taking longer than expected, please contact our customer service team at hello@Madrush.com.ng with your order number, and we\'ll investigate immediately.'
   },
   {
     category: 'Returns & Exchanges',
@@ -38,7 +38,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Returns & Exchanges',
     question: 'How do I initiate a return?',
-    answer: 'Contact our customer service team at hello@madrush.com with your order number and reason for return. We\'ll provide you with a return shipping label and instructions.'
+    answer: 'Contact our customer service team at hello@Madrush.com.ng with your order number and reason for return. We\'ll provide you with a return shipping label and instructions.'
   },
   {
     category: 'Returns & Exchanges',
@@ -97,8 +97,8 @@ export default function FAQPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All')
 
   const categories = ['All', ...Array.from(new Set(faqs.map(faq => faq.category)))]
-  const filteredFaqs = selectedCategory === 'All' 
-    ? faqs 
+  const filteredFaqs = selectedCategory === 'All'
+    ? faqs
     : faqs.filter(faq => faq.category === selectedCategory)
 
   const toggleFAQ = (index: number) => {
@@ -106,13 +106,21 @@ export default function FAQPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
-          <p className="text-xl text-gray-300 italic mb-4">No Chills just Mad Rush</p>
-          <p className="text-lg text-gray-400">
+      <div className="relative bg-black text-white py-20 border-b border-white/10">
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          <div className="absolute inset-0 hero-grid" aria-hidden="true" />
+          <div className="absolute inset-0 hero-noise" aria-hidden="true" />
+        </div>
+        <div className="max-w-4xl mx-auto px-4 text-center relative">
+          <h1 className="text-4xl md:text-6xl font-black tracking-[0.2em] text-white mb-4 uppercase" style={{ fontFamily: 'var(--font-display)' }}>
+            FAQ
+          </h1>
+          <p className="text-xl md:text-2xl text-electric-volt-green italic mb-4 font-bold tracking-wider">
+            No Chills, Just Mad Rush
+          </p>
+          <p className="text-base md:text-lg text-gray-400">
             Find answers to common questions about orders, shipping, returns, and more.
           </p>
         </div>
@@ -120,17 +128,16 @@ export default function FAQPage() {
 
       <div className="max-w-4xl mx-auto px-4 py-16">
         {/* Category Filter */}
-        <div className="mb-8">
+        <div className="mb-12">
           <div className="flex flex-wrap gap-3 justify-center">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-medium transition-all ${
-                  selectedCategory === category
-                    ? 'bg-gradient-to-r from-green-500 to-purple-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-6 py-3 rounded-full font-semibold uppercase tracking-[0.2em] text-xs transition-all ${selectedCategory === category
+                  ? 'bg-electric-volt-green text-black shadow-[0_0_20px_rgba(173,255,0,0.4)]'
+                  : 'bg-white/5 text-white/70 border border-white/10 hover:border-electric-volt-green hover:text-white'
+                  }`}
               >
                 {category}
               </button>
@@ -143,31 +150,31 @@ export default function FAQPage() {
           {filteredFaqs.map((faq, index) => (
             <div
               key={index}
-              className="border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors"
+              className="border border-white/10 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm hover:border-electric-volt-green/50 transition-all"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
               >
                 <div className="flex-1">
-                  <span className="text-xs font-semibold text-purple-600 mb-1 block">
+                  <span className="text-xs font-bold text-purple-400 mb-2 block uppercase tracking-[0.2em]">
                     {faq.category}
                   </span>
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-base md:text-lg font-semibold text-white">
                     {faq.question}
                   </span>
                 </div>
                 <div className="ml-4 flex-shrink-0">
                   {openIndex === index ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                    <ChevronUp className="h-5 w-5 text-electric-volt-green" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                    <ChevronDown className="h-5 w-5 text-white/50" />
                   )}
                 </div>
               </button>
               {openIndex === index && (
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                  <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                <div className="px-6 py-5 bg-black/40 border-t border-white/10">
+                  <p className="text-gray-300 leading-relaxed">{faq.answer}</p>
                 </div>
               )}
             </div>
@@ -175,21 +182,23 @@ export default function FAQPage() {
         </div>
 
         {/* Still Have Questions */}
-        <div className="mt-16 bg-gradient-to-r from-green-500 to-purple-500 rounded-2xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">Still Have Questions?</h2>
-          <p className="text-lg mb-6 text-gray-100">
+        <div className="mt-16 rounded-3xl border border-electric-volt-green/30 bg-gradient-to-br from-electric-volt-green/10 to-purple-500/10 p-8 md:p-12 text-white text-center backdrop-blur-sm">
+          <h2 className="text-3xl md:text-4xl font-black mb-4 uppercase tracking-[0.2em]" style={{ fontFamily: 'var(--font-display)' }}>
+            Still Have Questions?
+          </h2>
+          <p className="text-base md:text-lg mb-8 text-gray-300">
             Can't find what you're looking for? Our customer service team is here to help!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="/contact"
-              className="inline-block bg-white text-gray-900 font-bold py-3 px-8 rounded-lg hover:bg-gray-100 transition-all"
+              className="inline-block bg-electric-volt-green text-black font-bold py-4 px-8 rounded-full uppercase tracking-[0.3em] text-sm hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(173,255,0,0.5)] transition-all"
             >
               Contact Us
             </a>
             <a
-              href="mailto:hello@madrush.com"
-              className="inline-block bg-transparent border-2 border-white text-white font-bold py-3 px-8 rounded-lg hover:bg-white hover:text-gray-900 transition-all"
+              href="mailto:hello@Madrush.com.ng"
+              className="inline-block bg-transparent border-2 border-electric-volt-green text-electric-volt-green font-bold py-4 px-8 rounded-full uppercase tracking-[0.3em] text-sm hover:bg-electric-volt-green hover:text-black transition-all"
             >
               Email Support
             </a>

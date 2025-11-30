@@ -16,6 +16,7 @@ interface Category {
   name: string
   slug: string
   description?: string
+  image_url?: string
   parent_id?: number
   is_active: boolean
   created_at: string
@@ -114,9 +115,9 @@ export default function AdminCategories() {
                       </Link>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
+                          <Button
+                            variant="outline"
+                            size="icon"
                             aria-label={`Delete category ${category.name}`}
                             className="hover:bg-red-50 hover:border-red-300 transition-colors"
                           >
@@ -127,7 +128,7 @@ export default function AdminCategories() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Category</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete &ldquo;{category.name}&rdquo;? 
+                              Are you sure you want to delete &ldquo;{category.name}&rdquo;?
                               If products are using this category, it will be deactivated instead of deleted.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
@@ -152,11 +153,10 @@ export default function AdminCategories() {
                     </p>
                   )}
                   <div className="flex items-center justify-between text-sm pt-4 border-t border-gray-100">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
-                      category.is_active 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${category.is_active
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-600'
-                    }`}>
+                      }`}>
                       {category.is_active ? 'Active' : 'Inactive'}
                     </span>
                     <span className="text-gray-500 text-xs font-medium">

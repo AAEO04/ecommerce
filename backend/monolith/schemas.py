@@ -204,6 +204,7 @@ class CategoryResponse(BaseModel):
     name: str
     slug: str
     description: Optional[str] = None
+    image_url: Optional[str] = None
     parent_id: Optional[int] = None
     is_active: bool
     created_at: datetime
@@ -213,14 +214,16 @@ class CategoryResponse(BaseModel):
 
 class CategoryCreate(BaseModel):
     name: str
-    slug: str
+    slug: Optional[str] = None
     description: Optional[str] = None
+    image_url: Optional[str] = None
     parent_id: Optional[int] = None
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
+    image_url: Optional[str] = None
     parent_id: Optional[int] = None
     is_active: Optional[bool] = None
 

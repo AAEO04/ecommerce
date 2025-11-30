@@ -84,7 +84,7 @@ export default function OrderSuccessPage() {
           {/* Order Details Card */}
           <div className="bg-neutral-800/50 backdrop-blur-sm border border-neutral-700 rounded-xl p-6 md:p-8 mb-6">
             <h2 className="text-2xl font-bold text-white mb-6">What's Next?</h2>
-            
+
             <div className="space-y-6">
               {/* Timeline */}
               <div className="flex items-start gap-4">
@@ -152,7 +152,7 @@ export default function OrderSuccessPage() {
 
           {/* Additional Info */}
           <div className="text-center text-sm text-neutral-400">
-            <p className="mb-2">Need help? Contact our support team at support@madrush.com</p>
+            <p className="mb-2">Need help? Contact our support team at support@Madrush.com.ng</p>
             <p>or call us at 1-800-MAD-RUSH</p>
           </div>
         </motion.div>

@@ -45,7 +45,13 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
   const totalRevenue = bestSellers.reduce((sum, entry) => sum + (entry.revenue || 0), 0)
 
   const handleQuickAdd = (product: Product) => {
-    addItem(product)
+    // Use the first available variant
+    const firstVariant = product.variants?.[0]
+    if (!firstVariant) {
+      toast.error('Product has no available variants')
+      return
+    }
+    addItem(product, firstVariant.id)
     toast.success(`${product.name} added to cart`)
   }
 
@@ -112,9 +118,9 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
                 key={product.id}
                 variants={itemVariants}
                 whileHover={{ y: -8 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/80 p-6 backdrop-blur"
+                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/80 p-6 backdrop-blur flex flex-col"
               >
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-white/60">
+                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-white/60 mb-2">
                   <span className="flex items-center gap-2 text-electric-volt-green">
                     <Flame className="h-4 w-4" />
                     #{index + 1}
@@ -122,69 +128,61 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
                   <span className="text-white/50">{entry.unitsSold} orders</span>
                 </div>
 
-                {coverImage && (
-                  <div className="mt-4 overflow-hidden rounded-2xl border border-white/5">
+                <Link href={`/product/${product.id}`} className="block relative aspect-square w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5 mb-4">
+                  {coverImage && (
                     <Image
                       src={coverImage}
                       alt={product.name}
-                      width={480}
-                      height={320}
-                      className="h-56 w-full object-cover transition duration-500 group-hover:scale-105"
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      priority={index < 2}
                     />
+                  )}
+                </Link>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <Link href={`/product/${product.id}`}>
+                      <h3 className="text-lg font-bold text-white mb-1 line-clamp-2">{product.name}</h3>
+                    </Link>
+                    <p className="text-xs text-white/50 mb-2">{formatCategory(product.category)}</p>
                   </div>
-                )}
-
-                <div className="mt-5 space-y-2">
-                  <p className="text-xs uppercase tracking-[0.4em] text-white/50">{formatCategory(product.category)}</p>
-                  <h3 className="text-2xl font-semibold text-white leading-tight">{product.name}</h3>
-                  <p className="text-lg font-bold text-electric-volt-green">{formatNGN(price)}</p>
-                </div>
-
-                <div className="mt-5 flex items-center gap-3">
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xl font-black text-electric-volt-green">{formatNGN(price)}</span>
+                    <button
+                      aria-label={wishlistActive ? "Remove from wishlist" : "Add to wishlist"}
+                      className={`rounded-full p-2 border border-white/10 transition ${wishlistActive ? "bg-electric-volt-green/20 text-electric-volt-green" : "text-white/60 hover:bg-white/10"}`}
+                      onClick={() => toggleWishlist(product)}
+                      type="button"
+                    >
+                      <Heart className={`h-5 w-5 ${wishlistActive ? "fill-electric-volt-green" : ""}`} />
+                    </button>
+                  </div>
                   <button
+                    className="mt-4 w-full rounded-xl bg-electric-volt-green py-2 text-black font-bold hover:bg-white transition"
                     onClick={() => handleQuickAdd(product)}
-                    className="flex-1 rounded-2xl bg-electric-volt-green px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-black shadow-[0_12px_30px_rgba(173,255,0,0.35)] transition hover:-translate-y-0.5"
+                    type="button"
                   >
                     Quick Add
                   </button>
-                  <button
-                    aria-pressed={wishlistActive}
-                    onClick={() => toggleWishlist(product)}
-                    className={`rounded-full border p-3 transition ${
-                      wishlistActive ? 'border-red-400 text-red-400' : 'border-white/30 text-white/70'
-                    }`}
-                  >
-                    <Heart className={`h-4 w-4 ${wishlistActive ? 'fill-red-400 text-red-400' : ''}`} />
-                  </button>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between text-xs text-white/60">
-                  <span>Revenue {formatNGN(entry.revenue)}</span>
-                  <Link
-                    href={`/product/${product.id}`}
-                    className="inline-flex items-center gap-2 text-electric-volt-green hover:underline"
-                  >
-                    View product
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
                 </div>
               </motion.div>
             )
           })}
         </motion.div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
-            <p className="text-sm uppercase tracking-[0.4em] text-white/50">Total orders</p>
-            <p className="mt-2 text-3xl font-black">{totalUnits}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
+        {/* Summary cards moved below grid for mobile responsiveness */}
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
             <p className="text-sm uppercase tracking-[0.4em] text-white/50">Revenue pulse</p>
             <p className="mt-2 text-3xl font-black">{formatNGN(totalRevenue)}</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
             <p className="text-sm uppercase tracking-[0.4em] text-white/50">Sell through</p>
             <p className="mt-2 text-3xl font-black">{bestSellers.length} styles</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
+            <p className="text-sm uppercase tracking-[0.4em] text-white/50">Total units</p>
+            <p className="mt-2 text-3xl font-black">{totalUnits}</p>
           </div>
         </div>
       </div>

@@ -41,6 +41,8 @@ export type CartItem = {
   price: number
   quantity: number
   image?: string
+  size?: string
+  color?: string
   savedForLater?: boolean
 }
 
@@ -54,7 +56,7 @@ type CartState = {
   items: CartItem[]
   savedForLater: CartItem[]
   undoStack: UndoAction[]
-  addItem: (product: Product) => void
+  addItem: (product: Product, variantId: number) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   moveToSaved: (id: string) => void
@@ -66,13 +68,15 @@ type CartState = {
 }
 
 // Migration function to handle existing cart items with undefined prices
-const migrateCartData = (state: any): CartState => {
+const migrateCartData = (state: any) => {
   if (!state) return { items: [], savedForLater: [], undoStack: [] }
-  
-  const migrateItems = (items: any[]): CartItem[] => 
+
+  const migrateItems = (items: any[]): CartItem[] =>
     items.map(item => ({
       ...item,
       price: item.price ?? 0, // Ensure price is never undefined
+      size: item.size ?? undefined,
+      color: item.color ?? undefined,
     }))
 
   return {
@@ -88,34 +92,43 @@ export const useCartStore = create<CartState>()(
       items: [],
       savedForLater: [],
       undoStack: [],
-      addItem: (product) => {
+      addItem: (product, variantId) => {
         set((state) => {
-          const existing = state.items.find((i) => i.productId === product.id)
-          
+          // Find the variant details
+          const variant = product.variants.find(v => v.id === variantId)
+          if (!variant) {
+            console.error(`Variant ${variantId} not found for product ${product.id}`)
+            return state
+          }
+
+          // Create unique ID based on product and variant
+          const itemId = `product-${product.id}-variant-${variantId}`
+          const existing = state.items.find((i) => i.id === itemId)
+
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.id === existing.id
+                i.id === itemId
                   ? { ...i, quantity: i.quantity + 1 }
                   : i
               ),
             }
           }
-          
-          // Only create new item if it doesn't exist
-          const fallbackPrice = product.price ?? product.variants?.[0]?.price ?? 0
 
+          // Create new cart item with variant details
           const newItem: CartItem = {
-            id: `product-${product.id}`,
+            id: itemId,
             productId: product.id,
-            variant_id: product.id,
+            variant_id: variantId,
             name: product.name,
-            price: fallbackPrice,
+            price: variant.price,
             quantity: 1,
             image: product.images?.[0]?.image_url,
+            size: variant.size,
+            color: variant.color,
             savedForLater: false,
           }
-          
+
           return { items: [...state.items, newItem] }
         })
       },
@@ -161,10 +174,10 @@ export const useCartStore = create<CartState>()(
       undo: () => {
         const undoAction = get().undoStack[get().undoStack.length - 1]
         if (!undoAction) return
-        
+
         set((state) => {
           const newUndoStack = state.undoStack.slice(0, -1)
-          
+
           if (undoAction.type === 'remove') {
             return {
               items: [...state.items, undoAction.item],
@@ -180,7 +193,7 @@ export const useCartStore = create<CartState>()(
               undoStack: newUndoStack,
             }
           }
-          
+
           return state
         })
       },
@@ -194,8 +207,8 @@ export const useCartStore = create<CartState>()(
       migrate: (persistedState: any, version: number) => {
         return migrateCartData(persistedState)
       },
-      partialize: (state) => ({ 
-        items: state.items, 
+      partialize: (state) => ({
+        items: state.items,
         savedForLater: state.savedForLater,
         undoStack: state.undoStack,
       }),

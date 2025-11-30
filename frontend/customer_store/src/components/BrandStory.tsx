@@ -36,82 +36,74 @@ export function BrandStory() {
   ]
 
   return (
-    <section className="py-20 bg-black relative overflow-hidden">
+    <section className="py-32 bg-black relative overflow-hidden">
       <div className="absolute inset-0 hero-grid opacity-20" aria-hidden="true" />
-      <div className="absolute inset-0 hero-noise opacity-10" aria-hidden="true" />
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-4xl"
-        >
-          <p className="text-xs uppercase tracking-[0.6em] text-white/40 mb-4">MAD RUSH / BRAND STORY</p>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-6">
-            Built for the ones who move fast.
-          </h2>
-          <div className="flex flex-wrap gap-4 text-sm uppercase tracking-[0.35em] text-white/60">
-            <span>Design Lab · Lagos</span>
-            <span className="text-electric-volt-green">Drop pipeline · Weekly</span>
-            <span className="text-accent-red-500">Community first</span>
-          </div>
-        </motion.div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
 
-        <div className="mt-12 grid lg:grid-cols-[1.1fr_0.9fr] gap-10">
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6 bg-neutral-950 border border-white/10 rounded-3xl p-8"
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="space-y-10"
           >
-            <div className="flex gap-6 flex-wrap text-base text-neutral-200">
-              <div className="flex-1 min-w-[220px]">
-                <h3 className="text-xl font-bold text-electric-volt-green mb-2">Why we rush</h3>
-                <p>
-                  MAD RUSH is the collision of underground art, performance fabrics, and nightlife energy. Every release is numbered, archived, and built to withstand motion blur.
-                </p>
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="h-px w-12 bg-electric-volt-green" />
+                <span className="text-xs font-bold uppercase tracking-[0.4em] text-electric-volt-green">Brand Story</span>
               </div>
-              <div className="flex-1 min-w-[220px]">
-                <h3 className="text-xl font-bold text-accent-red-500 mb-2">Drop ritual</h3>
-                <p>
-                  We prototype on Monday, field test mid-week, and ship before the weekend hits. No leftovers. No chill. Just limited runs tuned to the city.
-                </p>
-              </div>
+
+              <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[0.9]" style={{ fontFamily: 'Druk Wide, Arial Black, sans-serif' }}>
+                BUILT FOR<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/50">VELOCITY.</span>
+              </h2>
+
+              <p className="text-lg text-gray-400 leading-relaxed max-w-xl">
+                MAD RUSH is the collision of underground art, performance fabrics, and nightlife energy. Every release is numbered, archived, and built to withstand motion blur.
+              </p>
             </div>
-            <div className="grid sm:grid-cols-3 gap-4 text-center">
-              {[
-                { label: 'Cities activated', value: '12', accent: 'text-electric-volt-green' },
-                { label: 'Limited capsules', value: '48', accent: 'text-accent-red-500' },
-                { label: 'Community drops', value: '9K+', accent: 'text-accent-purple-600' },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-2xl border border-white/10 p-4">
-                  <p className={`text-3xl font-black ${stat.accent}`}>{stat.value}</p>
-                  <p className="text-xs uppercase tracking-[0.35em] text-white/50 mt-2">{stat.label}</p>
-                </div>
-              ))}
+
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white">12+</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Cities Activated</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white">48</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Limited Capsules</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white">9K+</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Community Drops</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-3xl font-black text-white">24/7</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Support Signal</p>
+              </div>
             </div>
           </motion.div>
 
-          <div className="space-y-6">
+          <div className="grid gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: 0.1 * index }}
-                className="flex gap-4 rounded-2xl border border-white/10 bg-neutral-950/90 p-5"
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 hover:bg-white/10 transition-colors"
               >
-                <span className={`w-1.5 rounded-full ${feature.accentBar}`} aria-hidden="true" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <feature.icon className={`h-5 w-5 ${feature.accentText}`} />
-                    <p className={`text-xs uppercase tracking-[0.4em] ${feature.accentText}`}>Pillar</p>
+                <div className={`absolute top-0 left-0 h-full w-1 opacity-0 group-hover:opacity-100 transition-opacity ${feature.accentBar}`} />
+                <div className="flex items-start gap-6">
+                  <div className={`p-3 rounded-xl bg-white/5 ${feature.accentText}`}>
+                    <feature.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-1">{feature.title}</h3>
-                  <p className="text-sm text-neutral-300">{feature.description}</p>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-white uppercase tracking-wide">{feature.title}</h3>
+                    <p className="text-sm text-gray-400 leading-relaxed">{feature.description}</p>
+                  </div>
                 </div>
               </motion.div>
             ))}

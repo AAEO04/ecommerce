@@ -157,8 +157,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-[0.35em] text-white/50">Email</p>
-                    <a href="mailto:hello@madrush.com" className="text-lg font-semibold text-white hover:text-electric-volt-green">
-                      hello@madrush.com
+                    <a href="mailto:hello@Madrush.com.ng" className="text-lg font-semibold text-white hover:text-electric-volt-green">
+                      hello@Madrush.com.ng
                     </a>
                     <p className="text-sm text-white/60">Responses average 12 minutes</p>
                   </div>
