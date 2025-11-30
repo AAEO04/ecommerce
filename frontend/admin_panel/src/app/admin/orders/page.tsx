@@ -1,12 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminLayout from '@/components/admin/AdminLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  ShoppingBag, Package, DollarSign, Clock, 
+import {
+  ShoppingBag, Package, DollarSign, Clock,
   Search, Eye, Edit, X, MapPin, Phone, Mail, User
 } from 'lucide-react'
 import { adminApi } from '@/lib/admin/api'
@@ -17,7 +17,7 @@ import { Loading } from '@/components/ui/loading'
 import type { Order, OrderStatus, PaymentStatus, OrderFilters } from '@/types/admin'
 import { toast } from 'sonner'
 
-export default function OrdersPage() {
+function OrdersPageContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
@@ -38,11 +38,11 @@ export default function OrdersPage() {
 
   // Initialize from URL once
   useEffect(() => {
-    if (!isInitialized) {
-      const status = searchParams.get('status') || 'all'
-      const paymentStatus = searchParams.get('payment_status') || 'all'
+    if (!isInitialized && searchParams) {
+      const status = (searchParams.get('status') || 'all') as OrderStatus | 'all'
+      const paymentStatus = (searchParams.get('payment_status') || 'all') as PaymentStatus | 'all'
       const search = searchParams.get('search') || ''
-      
+
       setFilter({ status, paymentStatus, search })
       setSearchInput(search)
       setIsInitialized(true)
@@ -78,7 +78,7 @@ export default function OrdersPage() {
     if (filter.status !== 'all') params.set('status', filter.status)
     if (filter.paymentStatus !== 'all') params.set('payment_status', filter.paymentStatus)
     if (filter.search) params.set('search', filter.search)
-    
+
     const query = params.toString()
     router.replace(`/admin/orders${query ? `?${query}` : ''}`, { scroll: false })
     fetchOrders()
@@ -104,7 +104,7 @@ export default function OrdersPage() {
     try {
       const updates: { status?: OrderStatus, payment_status?: PaymentStatus } = { status }
       if (paymentStatus) updates.payment_status = paymentStatus
-      
+
       const response = await adminApi.updateOrderStatus(orderId, updates)
       if (response.success) {
         toast.success('Order status updated successfully.')
@@ -210,7 +210,7 @@ export default function OrdersPage() {
                 aria-label="Filter by order status"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 value={filter.status}
-                onChange={(e) => setFilter({...filter, status: e.target.value as OrderStatus | 'all'})}
+                onChange={(e) => setFilter({ ...filter, status: e.target.value as OrderStatus | 'all' })}
               >
                 <option value="all">All Status</option>
                 {Object.values(ORDER_STATUS).map(status => (
@@ -221,7 +221,7 @@ export default function OrdersPage() {
                 aria-label="Filter by payment status"
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 value={filter.paymentStatus}
-                onChange={(e) => setFilter({...filter, paymentStatus: e.target.value as PaymentStatus | 'all'})}
+                onChange={(e) => setFilter({ ...filter, paymentStatus: e.target.value as PaymentStatus | 'all' })}
               >
                 <option value="all">All Payments</option>
                 {Object.values(PAYMENT_STATUS).map(status => (
@@ -302,18 +302,17 @@ export default function OrdersPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
-                              order.payment_status === PAYMENT_STATUS.PAID || order.payment_status === PAYMENT_STATUS.COMPLETED 
-                                ? 'bg-green-100 text-green-800 border-green-200' 
-                                : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                            }`}>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${order.payment_status === PAYMENT_STATUS.PAID || order.payment_status === PAYMENT_STATUS.COMPLETED
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                              }`}>
                               {order.payment_status}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="icon"
                                 aria-label={`View order ${order.order_number}`}
                                 onClick={() => fetchOrderDetails(order.id)}
@@ -334,7 +333,7 @@ export default function OrdersPage() {
 
         {/* Order Details Modal */}
         {showOrderModal && selectedOrder && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             role="dialog"
             aria-modal="true"
@@ -412,8 +411,8 @@ export default function OrdersPage() {
                       <tbody>
                         {selectedOrder.items?.map((item) => (
                           <tr key={item.id} className="border-t border-gray-100">
-                            <td className="px-4 py-3 font-medium text-gray-900">{item.variant.product.name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{item.variant.size} / {item.variant.color}</td>
+                            <td className="px-4 py-3 font-medium text-gray-900">{item.variant?.product.name || item.product_name}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{item.variant?.size || item.variant_name} / {item.variant?.color || ''}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">{item.quantity}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">₦{parseFloat(item.unit_price.toString()).toFixed(2)}</td>
                             <td className="px-4 py-3 font-semibold text-gray-900">₦{parseFloat(item.total_price.toString()).toFixed(2)}</td>
@@ -476,7 +475,7 @@ export default function OrdersPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Notes</h3>
                     <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                      <p 
+                      <p
                         className="text-sm text-gray-700"
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedOrder.notes) }}
                       />
@@ -499,5 +498,13 @@ export default function OrdersPage() {
         )}
       </div>
     </AdminLayout>
+  )
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={<Loading text="Loading orders..." />}>
+      <OrdersPageContent />
+    </Suspense>
   )
 }

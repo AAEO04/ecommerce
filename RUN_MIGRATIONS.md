@@ -1,3 +1,4 @@
+
 # Run Database Migrations
 
 This script runs all pending Alembic migrations for the payment security fixes.
