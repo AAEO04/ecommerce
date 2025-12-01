@@ -19,7 +19,6 @@ redis==5.2.1
 
 # Email
 aiosmtplib==3.0.2
-mailgun2==1.2.1
 
 # SMS (Twilio)
 twilio==9.0.0
@@ -41,7 +40,6 @@ slowapi==0.1.9
 
 # HTML Sanitization
 bleach==6.1.0
-ruff==0.1.15
 Jinja2==3.1.4
 
 # CSRF Protection
