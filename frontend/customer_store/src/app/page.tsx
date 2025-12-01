@@ -13,10 +13,19 @@ const CommunityFeed = dynamic(() => import('@/components/CommunityFeed').then(mo
 const FAQ = dynamic(() => import('@/components/FAQ').then(mod => mod.FAQ))
 
 export default async function Home() {
-  const products = await fetchProducts()
-  const featured = products.slice(0, 3)
-  const newArrivals = products.slice(0, 8)
+  let products = []
+  let featured = []
+  let newArrivals = []
   let bestSellers = []
+
+  try {
+    products = await fetchProducts()
+    featured = products.slice(0, 3)
+    newArrivals = products.slice(0, 8)
+  } catch (error) {
+    console.error('Failed to load products', error)
+    // Products will be empty arrays, components will handle gracefully
+  }
 
   try {
     bestSellers = await fetchBestSellers()
