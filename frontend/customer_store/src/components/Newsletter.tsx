@@ -1,4 +1,4 @@
-export function Newsletter(){
+export function Newsletter() {
   return (
     <div className="p-8 bg-neutral-900 rounded-lg border border-neutral-800">
       <h3 className="text-2xl font-bold text-white mb-4">Join the Mad Rush</h3>

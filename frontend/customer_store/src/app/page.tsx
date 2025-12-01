@@ -50,10 +50,6 @@ export default async function Home() {
       </SectionReveal>
 
       <SectionReveal>
-        <Categories />
-      </SectionReveal>
-
-      <SectionReveal>
         <FAQ />
       </SectionReveal>
 

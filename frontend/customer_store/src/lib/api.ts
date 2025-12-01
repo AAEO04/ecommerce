@@ -25,6 +25,7 @@ export interface Product {
     is_primary?: boolean;
   }>;
   category?: string;
+  colorLabel?: string;
   variants: ProductVariant[];
 }
 

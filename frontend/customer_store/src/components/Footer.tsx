@@ -90,7 +90,7 @@ export function Footer() {
                 </div>
                 <div className="flex flex-col gap-1 pt-1.5">
                   <span className="text-xs uppercase tracking-widest">Studio 47</span>
-                  <span className="text-[10px] uppercase tracking-widest text-gray-600">Lower East Side · NYC</span>
+                  <span className="text-[10px] uppercase tracking-widest text-gray-600">lagos Nigeria · </span>
                 </div>
               </div>
             </div>
