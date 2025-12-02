@@ -12,7 +12,11 @@ const defaultApiUrl = isProd ? 'https://madrush.fly.dev' : 'http://localhost:800
 let apiUrl = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl
 
 // Force HTTPS in production to prevent mixed content errors
-if (isProd && apiUrl.startsWith('http://')) {
+// Force HTTPS in production or if using fly.dev
+if (apiUrl.includes('fly.dev') && apiUrl.startsWith('http://')) {
+  console.warn('⚠️ Converting HTTP to HTTPS for fly.dev API URL');
+  apiUrl = apiUrl.replace('http://', 'https://')
+} else if (isProd && apiUrl.startsWith('http://')) {
   console.warn('⚠️ Converting HTTP to HTTPS for production API URL');
   apiUrl = apiUrl.replace('http://', 'https://')
 }

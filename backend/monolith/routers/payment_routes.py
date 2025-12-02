@@ -173,7 +173,7 @@ async def initialize_payment(
 
 
 @router.get("/verify/{reference}", response_model=VerifyPaymentResponse)
-@limiter.limit("10/minute")
+@limiter.limit("60/minute")
 async def verify_payment(
     reference: str,
     request: Request,

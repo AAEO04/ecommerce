@@ -61,10 +61,13 @@ export const useWishlistStore = create<WishlistState>()(
         const existing = get().items.find((i) => i.id === product.id)
         if (existing) return
 
+        // Get price from product or first variant
+        const price = product.price || product.variants?.[0]?.price || 0
+
         const newItem: WishlistItem = {
           id: product.id,
           name: product.name,
-          price: product.price,
+          price: price,
           image: product.images?.[0]?.image_url || '',
           addedAt: Date.now(),
         }
