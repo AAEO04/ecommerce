@@ -7,6 +7,7 @@ import { Product } from '@/lib/api'
 import Image from 'next/image'
 import { formatNGN } from '@/utils/currency'
 import { motion, AnimatePresence } from 'framer-motion'
+import { CONFIG } from '@/lib/config'
 
 interface SearchBarProps {
   onClose?: () => void
