@@ -29,14 +29,14 @@ async def get_dashboard_stats(
     # Current period stats
     current_orders = db.query(models.Order).filter(
         models.Order.created_at >= start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).all()
     
     # Previous period stats for comparison
     previous_orders = db.query(models.Order).filter(
         models.Order.created_at >= previous_start,
         models.Order.created_at < start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).all()
     
     # Calculate metrics
@@ -93,7 +93,7 @@ async def get_sales_data(
         func.count(models.Order.id).label('orders')
     ).filter(
         models.Order.created_at >= start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).group_by(
         func.date(models.Order.created_at)
     ).order_by('date').all()
@@ -135,7 +135,7 @@ async def get_top_products(
         models.Order, models.OrderItem.order_id == models.Order.id
     ).filter(
         models.Order.created_at >= start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).group_by(
         models.Product.id,
         models.Product.name,
@@ -227,7 +227,7 @@ async def get_customer_analytics(
         func.avg(models.Order.total_amount)
     ).filter(
         models.Order.created_at >= start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).scalar()
     
     # Customer lifetime value (simplified)
@@ -236,7 +236,7 @@ async def get_customer_analytics(
     ).join(
         models.Customer, models.Order.customer_id == models.Customer.id
     ).filter(
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).group_by(
         models.Customer.id
     ).scalar()
@@ -271,7 +271,7 @@ async def get_revenue_by_category(
         models.Order, models.OrderItem.order_id == models.Order.id
     ).filter(
         models.Order.created_at >= start_date,
-        models.Order.payment_status == "completed"
+        models.Order.payment_status == "paid"
     ).group_by(
         models.Product.category
     ).all()

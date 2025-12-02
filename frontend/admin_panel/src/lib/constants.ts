@@ -9,7 +9,6 @@ export const ORDER_STATUS = {
 export const PAYMENT_STATUS = {
   PENDING: 'pending',
   PAID: 'paid',
-  COMPLETED: 'completed',
   FAILED: 'failed',
 } as const
 

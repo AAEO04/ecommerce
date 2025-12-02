@@ -127,7 +127,7 @@ def get_best_sellers(
         .join(models.OrderItem, models.OrderItem.variant_id == models.ProductVariant.id)
         .join(models.Order, models.Order.id == models.OrderItem.order_id)
         .filter(
-            models.Order.payment_status == "completed",
+            models.Order.payment_status == "paid",
             models.Order.created_at >= start_date,
             models.Product.is_active == True,
         )

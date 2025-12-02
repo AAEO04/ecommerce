@@ -39,7 +39,7 @@ def get_dashboard_stats(
     revenue_result = db.query(
         sql_func.sum(models.Order.total_amount)
     ).filter(
-        models.Order.payment_status.in_(['completed', 'paid'])
+        models.Order.payment_status == "paid"
     ).scalar()
 
     total_revenue = float(revenue_result) if revenue_result else 0.0
