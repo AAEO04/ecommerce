@@ -32,7 +32,9 @@ declare global {
   }
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { CONFIG } from './config'
+
+const API_URL = CONFIG.API_BASE
 const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || 'pk_test_xxx'
 
 /**
@@ -159,11 +161,11 @@ export const openPaystackPopup = async (
       },
       callback: async (response: PaystackResponse) => {
         console.log('Payment successful:', response)
-        
+
         // Verify payment with backend
         try {
           const verifyResult = await verifyPayment(response.reference)
-          
+
           if (verifyResult.status && verifyResult.data?.status === 'success') {
             onSuccess(response.reference)
           } else {
