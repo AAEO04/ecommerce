@@ -6,19 +6,17 @@ const envSchema = z.object({
 })
 
 const isProd = process.env.NODE_ENV === 'production'
-const defaultApiUrl = isProd ? 'https://madrush.fly.dev' : 'http://localhost:8000'
+// Hardcoded API URL as requested to resolve Vercel env var issues
+const PROD_API_URL = 'https://madrush.fly.dev';
+const DEV_API_URL = 'http://localhost:8000';
 
-// Get the API URL from environment or use default
-let apiUrl = process.env.NEXT_PUBLIC_API_URL || defaultApiUrl
+// In production, ALWAYS use the hardcoded HTTPS URL
+// In development, use env var or localhost
+let apiUrl = isProd ? PROD_API_URL : (process.env.NEXT_PUBLIC_API_URL || DEV_API_URL);
 
-// Force HTTPS in production to prevent mixed content errors
-// Force HTTPS in production or if using fly.dev
-if (apiUrl.includes('fly.dev') && apiUrl.startsWith('http://')) {
-  console.warn('⚠️ Converting HTTP to HTTPS for fly.dev API URL');
-  apiUrl = apiUrl.replace('http://', 'https://')
-} else if (isProd && apiUrl.startsWith('http://')) {
-  console.warn('⚠️ Converting HTTP to HTTPS for production API URL');
-  apiUrl = apiUrl.replace('http://', 'https://')
+// Double check to ensure no HTTP in production
+if (isProd && apiUrl.startsWith('http://')) {
+  apiUrl = PROD_API_URL;
 }
 
 const env = envSchema.parse({

@@ -195,15 +195,21 @@ async def verify_payment(
                 message=result.get("message", "Payment verification failed")
             )
         
-        # Check if data exists in the result
-        if "data" not in result:
-            logger.error(f"Verification result missing 'data' key for {reference}: {result}")
-            return VerifyPaymentResponse(
-                status=False,
-                message="Payment verification failed: Invalid response from payment gateway"
-            )
+        # The utility function returns { "status": "success", "data": { ... } }
+        # So we need to access result["data"] to get the transaction details
+        transaction_data = result.get("data", {})
         
-        transaction_data = result["data"]
+        # If transaction_data is empty but status is success, something is wrong
+        if not transaction_data and result.get("status") == "success":
+             # Fallback: maybe the result IS the data (in mock mode or different return structure)
+             if "amount" in result:
+                 transaction_data = result
+             else:
+                 logger.error(f"Verification result missing data for {reference}: {result}")
+                 return VerifyPaymentResponse(
+                     status=False,
+                     message="Payment verification failed: Invalid response structure"
+                 )
         
         # Find payment record
         payment = db.query(Payment).filter(
