@@ -29,16 +29,7 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   async rewrites() {
-    return [
-      {
-        source: '/admin',
-        destination: `${process.env.ADMIN_URL || 'http://localhost:3001'}/admin`,
-      },
-      {
-        source: '/admin/:path*',
-        destination: `${process.env.ADMIN_URL || 'http://localhost:3001'}/admin/:path*`,
-      },
-    ]
+    return []
   },
   async headers() {
     return [
