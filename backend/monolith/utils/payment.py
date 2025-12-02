@@ -389,13 +389,16 @@ def verify_payment(reference: str) -> dict:
             return {
                 "status": "success",
                 "verified": True,
-                "reference": data.get("reference"),
-                "amount": data.get("amount"),
-                "currency": data.get("currency", "NGN"),
-                "payment_date": data.get("paid_at"),
-                "channel": data.get("channel"),
-                "customer": data.get("customer", {}),
-                "message": "Payment verified successfully"
+                "message": "Payment verified successfully",
+                "data": {
+                    "reference": data.get("reference"),
+                    "amount": data.get("amount"),
+                    "currency": data.get("currency", "NGN"),
+                    "paid_at": data.get("paid_at"),
+                    "channel": data.get("channel"),
+                    "customer": data.get("customer", {}),
+                    "status": data.get("status")
+                }
             }
         else:
             logger.error(f"Payment verification failed: {response.get('message')}")

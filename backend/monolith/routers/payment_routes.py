@@ -186,10 +186,18 @@ async def verify_payment(
         # Verify with Paystack
         result = verify_payment_util(reference)
         
-        if not result["status"]:
+        if not result.get("status"):
             return VerifyPaymentResponse(
                 status=False,
-                message=result["message"]
+                message=result.get("message", "Payment verification failed")
+            )
+        
+        # Check if data exists in the result
+        if "data" not in result:
+            logger.error(f"Verification result missing 'data' key for {reference}: {result}")
+            return VerifyPaymentResponse(
+                status=False,
+                message="Payment verification failed: Invalid response from payment gateway"
             )
         
         transaction_data = result["data"]
