@@ -10,6 +10,7 @@ from database import get_db
 from models import Order, Payment
 from models import Order, Payment
 from utils.payment import paystack_client, process_payment, verify_payment as verify_payment_util
+from utils.rate_limiting import limiter
 from config import settings
 from datetime import datetime
 import logging
@@ -172,8 +173,10 @@ async def initialize_payment(
 
 
 @router.get("/verify/{reference}", response_model=VerifyPaymentResponse)
+@limiter.limit("10/minute")
 async def verify_payment(
     reference: str,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """

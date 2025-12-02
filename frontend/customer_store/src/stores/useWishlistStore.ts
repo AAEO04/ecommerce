@@ -6,7 +6,14 @@ import { Product } from '@/lib/api'
 import AES from 'crypto-js/aes'
 import Utf8 from 'crypto-js/enc-utf8'
 
-const SECRET_KEY = process.env.NEXT_PUBLIC_CART_ENCRYPTION_KEY || 'your-super-secret-key'
+// IMPORTANT: This key MUST be set in environment variables
+const SECRET_KEY = process.env.NEXT_PUBLIC_CART_ENCRYPTION_KEY;
+
+if (!SECRET_KEY) {
+  console.error('FATAL: NEXT_PUBLIC_CART_ENCRYPTION_KEY environment variable is not set');
+  console.error('Wishlist encryption will not work. Please set this in your .env.local file');
+}
+
 
 const encryptedStorage: StateStorage = {
   getItem: (name: string): string | null => {

@@ -175,7 +175,6 @@ export function Hero({ featuredProducts }: HeroProps) {
                 preload="auto"
                 className="absolute inset-0 w-full h-full object-cover"
                 style={{ willChange: 'transform' }}
-                poster="/videos/campaign-poster.jpg"
               >
                 <source src="/videos/campaign.mp4" type="video/mp4" />
               </video>

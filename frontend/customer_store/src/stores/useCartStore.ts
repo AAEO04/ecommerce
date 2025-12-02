@@ -6,8 +6,17 @@ import { Product } from '@/lib/api'
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
 
-// IMPORTANT: Move this key to an environment variable
-const SECRET_KEY = process.env.NEXT_PUBLIC_CART_ENCRYPTION_KEY || 'your-super-secret-key';
+// IMPORTANT: This key MUST be set in environment variables
+const SECRET_KEY = process.env.NEXT_PUBLIC_CART_ENCRYPTION_KEY;
+
+if (!SECRET_KEY) {
+  console.error('FATAL: NEXT_PUBLIC_CART_ENCRYPTION_KEY environment variable is not set');
+  console.error('Cart encryption will not work. Please set this in your .env.local file');
+  // Don't throw in production to avoid breaking the app, but log prominently
+}
+
+// Maximum size for encrypted storage (500KB)
+const MAX_STORAGE_SIZE = 500 * 1024; // 500KB
 
 const encryptedStorage: PersistStorage<CartState> = {
   getItem: (name: string): StorageValue<CartState> | null => {
@@ -20,13 +29,39 @@ const encryptedStorage: PersistStorage<CartState> = {
       return JSON.parse(decrypted);
     } catch (error) {
       console.error("Failed to decrypt cart data:", error);
+      // Clear corrupted data
+      localStorage.removeItem(name);
       return null;
     }
   },
   setItem: (name: string, value: StorageValue<CartState>): void => {
-    const stringified = JSON.stringify(value);
-    const encrypted = AES.encrypt(stringified, SECRET_KEY).toString();
-    localStorage.setItem(name, encrypted);
+    try {
+      const stringified = JSON.stringify(value);
+
+      // Check size before encryption
+      if (stringified.length > MAX_STORAGE_SIZE) {
+        console.warn('Cart data too large, trimming undo stack');
+        // Trim undo stack if data is too large
+        const trimmedValue = {
+          ...value,
+          state: {
+            ...value.state,
+            undoStack: []
+          }
+        };
+        const trimmedStringified = JSON.stringify(trimmedValue);
+        const encrypted = AES.encrypt(trimmedStringified, SECRET_KEY).toString();
+        localStorage.setItem(name, encrypted);
+        return;
+      }
+
+      const encrypted = AES.encrypt(stringified, SECRET_KEY).toString();
+      localStorage.setItem(name, encrypted);
+    } catch (error) {
+      console.error("Failed to encrypt cart data:", error);
+      // Fallback: clear the cart to prevent further errors
+      localStorage.removeItem(name);
+    }
   },
   removeItem: (name: string): void => {
     localStorage.removeItem(name);

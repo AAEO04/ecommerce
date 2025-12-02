@@ -302,7 +302,7 @@ function OrdersPageContent() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${order.payment_status === PAYMENT_STATUS.PAID || order.payment_status === 'completed'
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${order.payment_status === PAYMENT_STATUS.PAID || (order.payment_status as string) === 'completed'
                               ? 'bg-green-100 text-green-800 border-green-200'
                               : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                               }`}>
