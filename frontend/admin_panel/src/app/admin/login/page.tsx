@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react'
 
-// Get API URL from environment or use default
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { CONFIG } from '@/lib/config'
+
+// Get API URL from environment
+const API_URL = CONFIG.API_URL
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')

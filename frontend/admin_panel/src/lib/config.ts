@@ -17,3 +17,5 @@ export const CONFIG = {
 if (CONFIG.IS_PROD && !CONFIG.API_URL.startsWith('https://')) {
   console.warn('⚠️ Production API URL should use HTTPS');
 }
+
+console.log('[Config] API URL:', CONFIG.API_URL);

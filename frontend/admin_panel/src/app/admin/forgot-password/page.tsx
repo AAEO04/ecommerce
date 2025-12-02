@@ -9,8 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
-// Get API URL from environment or use default
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { CONFIG } from '@/lib/config'
+
+// Get API URL from environment
+const API_URL = CONFIG.API_URL
 
 export default function ForgotPasswordPage() {
   const [resetEmail, setResetEmail] = useState('')
