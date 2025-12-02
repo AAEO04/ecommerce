@@ -5,8 +5,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 
+const isProd = process.env.NODE_ENV === 'production'
+const defaultApiUrl = isProd ? 'https://madrush.fly.dev' : 'http://localhost:8000'
+
 const env = envSchema.parse({
-  API_BASE: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+  API_BASE: process.env.NEXT_PUBLIC_API_URL || defaultApiUrl,
   NODE_ENV: process.env.NODE_ENV,
 })
 

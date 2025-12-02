@@ -41,15 +41,20 @@ def admin_login(request: Request, login_data: LoginRequest, response: Response, 
     access_token = create_admin_token(admin_user.email)
     
     # Set HttpOnly cookie
-    response.set_cookie(
-        key="admin_token",
-        value=access_token,
-        max_age=settings.COOKIE_MAX_AGE,
-        httponly=True,
-        secure=settings.COOKIE_SECURE,
-        samesite=settings.COOKIE_SAMESITE,
-        path="/"
-    )
+    # Set HttpOnly cookie
+    cookie_params = {
+        "key": "admin_token",
+        "value": access_token,
+        "max_age": settings.COOKIE_MAX_AGE,
+        "httponly": True,
+        "secure": settings.COOKIE_SECURE,
+        "samesite": settings.COOKIE_SAMESITE,
+        "path": "/"
+    }
+    if settings.COOKIE_DOMAIN:
+        cookie_params["domain"] = settings.COOKIE_DOMAIN
+
+    response.set_cookie(**cookie_params)
     
     return LoginResponse(
         token_type="bearer",
@@ -68,11 +73,15 @@ def get_admin_info(current_admin: dict = Depends(get_current_admin_from_cookie))
 def admin_logout(response: Response):
     """Logout admin user and clear HttpOnly cookie"""
     # Clear the HttpOnly cookie
-    response.delete_cookie(
-        key="admin_token",
-        path="/",
-        samesite=settings.COOKIE_SAMESITE
-    )
+    cookie_params = {
+        "key": "admin_token",
+        "path": "/",
+        "samesite": settings.COOKIE_SAMESITE
+    }
+    if settings.COOKIE_DOMAIN:
+        cookie_params["domain"] = settings.COOKIE_DOMAIN
+
+    response.delete_cookie(**cookie_params)
     return {"message": "Successfully logged out"}
 
 @router.get("/verify")

@@ -1,7 +1,10 @@
 import { z } from 'zod'
 
+const isProd = process.env.NODE_ENV === 'production'
+const defaultApiUrl = isProd ? 'https://madrush.fly.dev' : 'http://localhost:8000'
+
 const envSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:8000'),
+  NEXT_PUBLIC_API_URL: z.string().url().default(defaultApiUrl),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 

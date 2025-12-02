@@ -12,6 +12,11 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'madrush.fly.dev',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
       {
