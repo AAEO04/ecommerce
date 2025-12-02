@@ -55,7 +55,7 @@ def get_categories(
     
     return result
 
-@router.get("/", response_model=List[schemas.ProductResponse])
+@router.get("", response_model=List[schemas.ProductResponse])
 @cached("products", expire=constants.CACHE_PRODUCT_TTL)
 def read_products(
     skip: int = Query(0, ge=0),
