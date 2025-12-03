@@ -32,6 +32,31 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+@router.post("/validate-cart")
+def validate_cart(
+    validation_data: schemas.CartValidationRequest,
+    db: Session = Depends(get_db)
+):
+    """Validate cart items stock availability"""
+    for item in validation_data.cart:
+        variant = db.query(models.ProductVariant).filter(
+            models.ProductVariant.id == item.variant_id,
+            models.ProductVariant.is_active == True
+        ).first()
+        
+        if not variant:
+            raise ProductNotFoundException(product_id=item.variant_id)
+        
+        if variant.stock_quantity < item.quantity:
+            raise InsufficientStockException(
+                variant_id=variant.id,
+                available=variant.stock_quantity,
+                requested=item.quantity
+            )
+            
+    return {"status": "valid", "message": "Cart is valid"}
+
+
 @router.post("/checkout")
 @checkout_rate_limit()
 def process_checkout(

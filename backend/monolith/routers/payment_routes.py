@@ -275,6 +275,7 @@ async def verify_payment(
                 "paid_at": transaction_data.get("paid_at"),
                 "customer_email": transaction_data["customer"]["email"],
                 "order_id": order.id,
+                "order_number": order.order_number,  # CRITICAL: Frontend expects this
                 "order_status": order.status
             }
         )

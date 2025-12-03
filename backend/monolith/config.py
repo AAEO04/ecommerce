@@ -33,10 +33,10 @@ class Settings:
     SENDER_EMAIL: str = os.getenv("SENDER_EMAIL", "noreply@Madrush.com.ng")
     NOTIFICATION_MOCK: bool = os.getenv("NOTIFICATION_MOCK", "false").lower() == "true"
     
-    # SMS (Twilio - optional)
-    TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
-    TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
-    TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")
+    # WhatsApp (Meta Cloud API - optional)
+    META_ACCESS_TOKEN: str = os.getenv("META_ACCESS_TOKEN", "")
+    META_PHONE_NUMBER_ID: str = os.getenv("META_PHONE_NUMBER_ID", "")
+    META_API_VERSION: str = os.getenv("META_API_VERSION", "v18.0")
     
     # JWT Secret - REQUIRED
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")

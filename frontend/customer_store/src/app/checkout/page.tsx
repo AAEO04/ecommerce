@@ -1,7 +1,7 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/stores/useCartStore'
-import { checkout, CheckoutPayload } from '@/lib/api'
+import { checkout, validateCart, CheckoutPayload } from '@/lib/api'
 import { launchSuccessConfetti } from '@/utils/confetti'
 import { useRouter } from 'next/navigation'
 import { Loader2, CreditCard, Lock, Shield, Check } from 'lucide-react'
@@ -39,6 +39,31 @@ export default function CheckoutPage() {
   const total = getTotal()
   const shippingFee = 0
   const grandTotal = total
+
+  // Validate cart on mount
+  useEffect(() => {
+    if (items.length === 0) return
+
+    const validate = async () => {
+      try {
+        await validateCart(items.map(i => ({ variant_id: i.variant_id!, quantity: i.quantity })))
+      } catch (error: any) {
+        console.error('Cart validation failed:', error)
+        if (error.message.includes('Insufficient stock')) {
+          toast.error("TOO SLOW! Some items in your cart just sold out.", {
+            icon: '⚡',
+            style: { background: '#000', color: '#fff', border: '1px solid #ff00ff' }
+          })
+        } else {
+          toast.error("CART SYNC ISSUE. Please refresh.", {
+            icon: '⚠️',
+            style: { background: '#000', color: '#fff' }
+          })
+        }
+      }
+    }
+    validate()
+  }, [items])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -100,9 +125,32 @@ export default function CheckoutPage() {
       } else {
         throw new Error('Payment URL not returned')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Checkout failed:', error)
-      toast.error('Checkout failed. Please try again.')
+
+      // MAD RUSH ERROR HANDLING
+      let message = "MISSION FAILED. Retrying..."
+
+      if (error.message?.includes('Insufficient stock') || error.status === 409) {
+        message = "TOO SLOW! This drop is moving faster than you. Item sold out."
+      } else if (error.message?.includes('Product not found') || error.status === 404) {
+        message = "GHOST ITEM DETECTED. Someone snatched it while you blinked."
+      } else if (error.message?.includes('Payment') || error.status === 402) {
+        message = "FUNDS REJECTED. Your card ghosted us. Fix your money."
+      } else if (error.status === 429) {
+        message = "CHILL! You're clicking too fast. Breathe."
+      }
+
+      toast.error(message, {
+        style: {
+          background: '#000',
+          color: '#fff',
+          border: '1px solid #ff00ff',
+          fontWeight: 'bold',
+          textTransform: 'uppercase'
+        },
+        icon: '💀'
+      })
       setLoading(false)
       setIsSubmitting(false)
     }

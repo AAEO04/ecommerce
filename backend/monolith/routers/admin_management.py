@@ -69,7 +69,8 @@ def send_invite_email(email: str, token: str, invited_by: str):
     Send invitation email to new admin
     TODO: Implement actual email sending
     """
-    invite_link = f"http://localhost:3001/admin/accept-invite?token={token}"
+    from config import settings
+    invite_link = f"{settings.FRONTEND_URL}/admin/accept-invite?token={token}"
     
     print(f"\n{'='*70}")
     print(f"📧 ADMIN INVITE EMAIL")
@@ -95,7 +96,8 @@ def send_password_reset_email(email: str, token: str):
     Send password reset email
     TODO: Implement actual email sending
     """
-    reset_link = f"http://localhost:3001/admin/reset-password?token={token}"
+    from config import settings
+    reset_link = f"{settings.FRONTEND_URL}/admin/reset-password?token={token}"
     
     print(f"\n{'='*70}")
     print(f"📧 PASSWORD RESET EMAIL")

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
+import { CONFIG } from '@/lib/config'
 
 export async function GET() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
+    const res = await fetch(`${CONFIG.API_BASE}/api/products`, {
       next: { revalidate: 60 }
     })
 

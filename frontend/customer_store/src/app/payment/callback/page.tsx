@@ -28,14 +28,15 @@ export default function PaymentCallbackPage() {
             try {
                 const result = await verifyPayment(reference)
 
-                if (result.status === 'success' && result.order_number) {
+                // Backend returns: { status: true, message: "...", data: { order_number, status, ... } }
+                if (result.status && result.data?.status === 'success' && result.data?.order_number) {
                     setStatus('success')
-                    setOrderNumber(result.order_number)
+                    setOrderNumber(result.data.order_number)
                     clear()
                     sessionStorage.removeItem('payment_reference')
                     sessionStorage.removeItem('checkout_email')
                     toast.success('Payment successful!')
-                } else if (result.status === 'pending') {
+                } else if (result.data?.status === 'pending') {
                     // Payment is still being processed, retry
                     if (retryCount < 10) { // Max 10 retries (30 seconds)
                         setTimeout(() => {

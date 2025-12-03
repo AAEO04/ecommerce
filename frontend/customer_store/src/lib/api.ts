@@ -89,6 +89,16 @@ export interface CheckoutResponse {
   order_number?: string;
 }
 
+}
+
+export async function validateCart(cart: { variant_id: number; quantity: number }[]) {
+  return fetchWithRetry(`${API_BASE}/api/orders/validate-cart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cart }),
+  });
+}
+
 export async function checkout(payload: CheckoutPayload): Promise<CheckoutResponse> {
   return fetchWithRetry(`${API_BASE}/api/orders/checkout`, {
     method: 'POST',

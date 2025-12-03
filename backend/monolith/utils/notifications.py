@@ -92,32 +92,38 @@ def send_email(
         logger.error(f"Failed to send email to {to_email}: {e}")
         return False
 
-def send_sms(to_phone: str, message: str) -> bool:
-    """Send SMS notification via Twilio"""
+def send_whatsapp(to_phone: str, message: str) -> bool:
+    """Send WhatsApp notification via Meta Cloud API"""
     if settings.NOTIFICATION_MOCK:
-        print(f"SMS notification (mock): {to_phone} - {message}")
+        print(f"📱 WhatsApp notification (mock): {to_phone} - {message}")
         return True
     
-    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
-        print("Twilio credentials are not set. SMS not sent.")
+    if not settings.META_ACCESS_TOKEN or not settings.META_PHONE_NUMBER_ID:
+        logger.warning("Meta WhatsApp credentials are not set. Message not sent.")
         return False
     
     try:
-        from twilio.rest import Client
+        from utils.whatsapp import whatsapp_client
         
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        
-        msg = client.messages.create(
-            body=message,
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=to_phone
+        result = whatsapp_client.send_message(
+            to_phone=to_phone,
+            message=message
         )
         
-        print(f"SMS sent successfully to {to_phone}: {msg.sid}")
-        return True
+        if result.get("success"):
+            logger.info(f"WhatsApp sent to {to_phone}: {result.get('message_id')}")
+            return True
+        else:
+            logger.error(f"Failed to send WhatsApp to {to_phone}: {result.get('error')}")
+            return False
+            
     except Exception as e:
-        print(f"Failed to send SMS to {to_phone}: {e}")
+        logger.error(f"WhatsApp error for {to_phone}: {e}")
         return False
+
+
+# Alias for backward compatibility
+send_sms = send_whatsapp
 
 def generate_order_confirmation_email(order: 'models.Order') -> tuple:
     """Generate order confirmation email content using Jinja2 template"""
@@ -167,7 +173,7 @@ def generate_order_confirmation_email(order: 'models.Order') -> tuple:
     return subject, html_content, text_content
 
 def send_order_confirmation(order):
-    """Send order confirmation email and SMS"""
+    """Send order confirmation email and WhatsApp"""
     # Send email
     subject, html_content, text_content = generate_order_confirmation_email(order)
     
@@ -182,8 +188,8 @@ def send_order_confirmation(order):
         tags=tags
     )
     
-    # Send SMS if phone number is available
+    # Send WhatsApp if phone number is available
     if order.customer_phone:
-        sms_message = f"Order Confirmed! Order #{order.order_number}. Total: ₦{order.total_amount}. Thank you for shopping with MAD RUSH!"
-        send_sms(order.customer_phone, sms_message)
+        whatsapp_message = f"✅ Order Confirmed!\n\nOrder #{order.order_number}\nTotal: ₦{order.total_amount:,.2f}\n\nThank you for shopping with MAD RUSH! 🛍️"
+        send_whatsapp(order.customer_phone, whatsapp_message)
 

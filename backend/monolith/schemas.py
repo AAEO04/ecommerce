@@ -144,6 +144,10 @@ class OrderItemCreate(BaseModel):
             raise ValueError('Quantity must be positive')
         return v
 
+class CartValidationRequest(BaseModel):
+    cart: List[OrderItemCreate]
+
+
 class CheckoutRequest(BaseModel):
     cart: List[OrderItemCreate]
     customer_name: str = Field(..., min_length=constants.NAME_MIN_LENGTH, max_length=constants.NAME_MAX_LENGTH)
