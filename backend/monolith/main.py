@@ -88,10 +88,8 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Fly.io handles this
 
-# Force HTTPS redirect
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
-if settings.ENVIRONMENT == "production":
-    app.add_middleware(HTTPSRedirectMiddleware)
+# HTTPS is enforced by Fly.io at the edge (force_https = true in fly.toml)
+# No need for HTTPSRedirectMiddleware - it can interfere with trailing slash handling
 
 # Mount static files
 
