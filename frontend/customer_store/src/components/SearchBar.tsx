@@ -45,7 +45,9 @@ export function SearchBar({ onClose }: SearchBarProps) {
       setIsOpen(true)
 
       try {
-        const response = await fetch(`${CONFIG.API_BASE}/api/products`)
+        const response = await fetch(`${CONFIG.API_BASE}/api/products`, {
+          redirect: 'follow',
+        })
         const products: Product[] = await response.json()
 
         const filtered = products.filter(product =>

@@ -78,6 +78,7 @@ export const initializePayment = async (
       headers: {
         'Content-Type': 'application/json',
       },
+      redirect: 'follow',
       body: JSON.stringify({
         email,
         amount, // Amount in kobo
@@ -113,6 +114,7 @@ export const verifyPayment = async (reference: string): Promise<{
       headers: {
         'Content-Type': 'application/json',
       },
+      redirect: 'follow',
     })
 
     if (!response.ok) {

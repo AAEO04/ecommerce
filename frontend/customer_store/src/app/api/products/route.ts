@@ -4,7 +4,8 @@ import { CONFIG } from '@/lib/config'
 export async function GET() {
   try {
     const res = await fetch(`${CONFIG.API_BASE}/api/products`, {
-      next: { revalidate: 60 }
+      next: { revalidate: 60 },
+      redirect: 'follow',
     })
 
     if (!res.ok) {
