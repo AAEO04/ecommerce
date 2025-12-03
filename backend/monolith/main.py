@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="MAD RUSH E-commerce API",
     description="Monolithic API for MAD RUSH e-commerce platform",
-    version="2.0.0"
+    version="2.0.0",
+    redirect_slashes=False  # Prevent 307 redirects on Fly.io cold starts
 )
 
 # Add rate limiting
