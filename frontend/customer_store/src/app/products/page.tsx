@@ -153,7 +153,7 @@ function ProductsPageContent() {
       <div className="absolute inset-0 hero-grid opacity-10" aria-hidden="true" />
       <div className="absolute inset-0 hero-noise opacity-20" aria-hidden="true" />
       <div className="relative z-10">
-        <div className="container mx-auto px-4 py-14 space-y-8">
+        <div className="container mx-auto px-4 py-14 pb-24 md:pb-8 space-y-8">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.4em] text-white/60">

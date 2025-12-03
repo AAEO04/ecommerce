@@ -90,8 +90,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                           key={index}
                           onClick={() => setSelectedImageIndex(index)}
                           className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImageIndex === index
-                              ? 'border-accent-green'
-                              : 'border-neutral-700 hover:border-neutral-500'
+                            ? 'border-accent-green'
+                            : 'border-neutral-700 hover:border-neutral-500'
                             }`}
                         >
                           <Image
@@ -114,7 +114,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                   </DialogTitle>
 
                   <div className="text-3xl font-bold text-accent-green">
-                    {formatNGN(product.price)}
+                    {product.variants?.[0]?.price ? formatNGN(Number(product.variants[0].price)) : 'N/A'}
                   </div>
 
                   {product.description && (
@@ -136,8 +136,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                     <button
                       onClick={handleToggleWishlist}
                       className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${isInWishlist(product.id)
-                          ? 'bg-red-500 hover:bg-red-600 text-white'
-                          : 'bg-neutral-800 hover:bg-neutral-700 text-white'
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-neutral-800 hover:bg-neutral-700 text-white'
                         }`}
                     >
                       <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />

@@ -52,6 +52,18 @@ const nextConfig = {
             key: 'X-Frame-Options',
             value: 'DENY'
           },
+          {
+            key: 'Content-Security-Policy',
+            value: "upgrade-insecure-requests; default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.paystack.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' https: data:; connect-src 'self' https://madrush.fly.dev https://*.fly.dev; frame-src https://js.paystack.co;"
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+          },
         ],
       },
     ]

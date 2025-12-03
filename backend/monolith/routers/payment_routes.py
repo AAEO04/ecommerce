@@ -230,9 +230,9 @@ async def verify_payment(
                 detail="Order not found"
             )
         
-        # Verify amount matches
-        expected_amount_kobo = int(payment.amount * 100)
-        actual_amount = transaction_data["amount"]
+        # Verify amount matches (with explicit type casting to prevent type mismatch)
+        expected_amount_kobo = round(float(payment.amount) * 100)
+        actual_amount = int(transaction_data.get("amount", 0))
         
         if expected_amount_kobo != actual_amount:
             logger.error(
@@ -244,15 +244,42 @@ async def verify_payment(
                 detail="Payment amount mismatch"
             )
         
-        # Update payment record
-        payment.status = transaction_data["status"]
-        payment.paid_at = datetime.fromisoformat(
-            transaction_data["paid_at"].replace("Z", "+00:00")
-        ) if transaction_data.get("paid_at") else None
+        # Update payment record (with safe field extraction)
+        payment_status = transaction_data.get("status")
+        if not payment_status:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing payment status in Paystack response"
+            )
+        
+        payment.status = payment_status
+        
+        # Safe datetime parsing
+        try:
+            paid_at_str = transaction_data.get("paid_at")
+            if paid_at_str and isinstance(paid_at_str, str):
+                # Handle both 'Z' and timezone formats
+                if paid_at_str.endswith('Z'):
+                    paid_at_str = paid_at_str.replace('Z', '+00:00')
+                payment.paid_at = datetime.fromisoformat(paid_at_str)
+            else:
+                payment.paid_at = None
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Failed to parse paid_at for {reference}: {e}")
+            payment.paid_at = None
+        
         payment.channel = transaction_data.get("channel")
-        payment.fees = transaction_data.get("fees", 0) / 100  # Convert from kobo
+        
+        # Safe fees conversion
+        try:
+            fees_kobo = transaction_data.get("fees", 0)
+            payment.fees = float(fees_kobo or 0) / 100
+        except (ValueError, TypeError):
+            payment.fees = 0
+        
         import json
-        payment.payment_metadata = json.dumps(transaction_data.get("metadata", {}))
+        metadata = transaction_data.get("metadata", {})
+        payment.payment_metadata = json.dumps(metadata) if metadata else "{}"
         
         # Update order status
         if transaction_data["status"] == "success":
@@ -265,15 +292,19 @@ async def verify_payment(
         
         db.commit()
         
+        # Safe customer email extraction with fallback
+        customer_data = transaction_data.get("customer", {})
+        customer_email = customer_data.get("email") if isinstance(customer_data, dict) else None
+        
         return VerifyPaymentResponse(
             status=True,
             message="Payment verified successfully",
             data={
                 "reference": reference,
-                "amount": transaction_data["amount"] / 100,  # Convert to naira
-                "status": transaction_data["status"],
+                "amount": actual_amount / 100,  # Convert to naira
+                "status": payment_status,
                 "paid_at": transaction_data.get("paid_at"),
-                "customer_email": transaction_data["customer"]["email"],
+                "customer_email": customer_email or order.customer_email,
                 "order_id": order.id,
                 "order_number": order.order_number,  # CRITICAL: Frontend expects this
                 "order_status": order.status

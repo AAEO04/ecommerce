@@ -12,14 +12,8 @@ export async function fetchWithRetry(
 
   for (let i = 0; i < MAX_RETRIES; i++) {
     try {
-      const res = await fetch(url, {
-        ...options,
-        // Ensure redirects are followed (this is the default, but being explicit)
-        redirect: 'follow',
-      });
+      const res = await fetch(url, options);
 
-      // 3xx redirects are successful and should be handled by fetch automatically
-      // If we get here after following redirects, check if the final response is ok
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         const errorMessage = errorData.detail || `Request failed: ${res.statusText}`;
@@ -32,11 +26,6 @@ export async function fetchWithRetry(
 
       // Don't retry client errors (4xx)
       if (error instanceof ApiError && error.status >= 400 && error.status < 500) {
-        throw error;
-      }
-
-      // Don't retry redirect errors either - they should be handled by fetch
-      if (error instanceof ApiError && error.status >= 300 && error.status < 400) {
         throw error;
       }
 
