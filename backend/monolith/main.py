@@ -83,6 +83,10 @@ app.add_middleware(
 # GZip middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+# Trust proxy headers from Fly.io
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Fly.io handles this
+
 # Force HTTPS redirect
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 if settings.ENVIRONMENT == "production":
