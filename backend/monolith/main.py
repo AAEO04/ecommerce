@@ -83,6 +83,11 @@ app.add_middleware(
 # GZip middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+# Force HTTPS redirect
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+if settings.ENVIRONMENT == "production":
+    app.add_middleware(HTTPSRedirectMiddleware)
+
 # Mount static files
 
 
