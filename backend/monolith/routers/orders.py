@@ -108,8 +108,10 @@ def process_checkout(
                 }
 
         logger.info("Step 2: Generating payment reference")
-        # Generate payment reference
-        payment_reference = f"pay_{str(uuid.uuid4()).replace('-', '')}"
+        # Generate payment reference - standardized format
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        unique_id = str(uuid.uuid4())[:8].upper()
+        payment_reference = f"MADRUSH-{timestamp}-{unique_id}"
         
         total_amount = Decimal('0.0')
         cart_items = []
@@ -332,3 +334,55 @@ def process_refund(
         "refund_amount": float(refund_amount),
         "refund_reference": refund_reference
     }
+
+
+@router.post("/lookup")
+def lookup_orders(
+    email: str,
+    order_number: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Public endpoint for customers to look up their orders by email.
+    Optionally filter by order number for specific order lookup.
+    """
+    # Basic email validation
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email is required")
+    
+    query = db.query(models.Order).options(
+        joinedload(models.Order.items).joinedload(models.OrderItem.variant).joinedload(models.ProductVariant.product)
+    ).filter(
+        models.Order.customer_email == email.lower().strip()
+    )
+    
+    if order_number:
+        query = query.filter(models.Order.order_number == order_number.strip().upper())
+    
+    orders = query.order_by(models.Order.created_at.desc()).limit(20).all()
+    
+    if not orders:
+        raise HTTPException(status_code=404, detail="No orders found for this email")
+    
+    # Return simplified order data for customer
+    return [
+        {
+            "order_number": order.order_number,
+            "status": order.status,
+            "payment_status": order.payment_status,
+            "total_amount": float(order.total_amount),
+            "created_at": order.created_at.isoformat(),
+            "items": [
+                {
+                    "product_name": item.variant.product.name if item.variant and item.variant.product else "Unknown",
+                    "size": item.variant.size if item.variant else None,
+                    "color": item.variant.color if item.variant else None,
+                    "quantity": item.quantity,
+                    "unit_price": float(item.unit_price),
+                    "total_price": float(item.total_price)
+                }
+                for item in order.items
+            ]
+        }
+        for order in orders
+    ]

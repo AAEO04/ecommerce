@@ -124,6 +124,18 @@ def create_order_from_checkout(
                 )
                 db.add(order_item)
             
+            # Create Payment record for admin reporting
+            payment_record = models.Payment(
+                order_id=new_order.id,
+                reference=payment_reference,
+                amount=total_amount,
+                status="success",
+                payment_method="paystack",
+                channel="card",  # Default, could be updated from webhook data
+                paid_at=datetime.now()
+            )
+            db.add(payment_record)
+            
             # Update pending checkout status
             pending_checkout.status = "completed"
             

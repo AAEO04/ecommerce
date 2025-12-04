@@ -4,7 +4,7 @@ Run this periodically (e.g., every 15 minutes) via cron or task scheduler
 """
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 # Add parent directory to path
@@ -30,10 +30,11 @@ def cleanup_expired_checkouts(db: Session) -> dict:
         dict: Statistics about the cleanup operation
     """
     try:
-        # Find expired pending checkouts
+        # Find expired pending checkouts (use timezone-aware datetime)
+        now = datetime.now(timezone.utc)
         expired_checkouts = db.query(models.PendingCheckout).filter(
             models.PendingCheckout.status == "pending",
-            models.PendingCheckout.expires_at < datetime.now()
+            models.PendingCheckout.expires_at < now
         ).all()
         
         count = len(expired_checkouts)

@@ -101,9 +101,17 @@ async def paystack_webhook(request: Request, background_tasks: BackgroundTasks, 
             db.commit()
             return {"status": "received"}
     
+    except HTTPException:
+        # Re-raise HTTP exceptions (client errors like 400/401) - don't retry these
+        raise
     except Exception as e:
         logger.exception("Error processing webhook")
-        return SecureErrorHandler.handle_generic_error(e, "webhook processing")
+        # IMPORTANT: Return 5xx to allow Paystack to retry on transient errors
+        # Paystack will retry webhooks that return 5xx status codes
+        raise HTTPException(
+            status_code=500,
+            detail="Internal error processing webhook - will retry"
+        )
 
 def handle_successful_payment(data: dict, db: Session, background_tasks: BackgroundTasks):
     """Handle successful payment and create order with security validations"""
@@ -122,13 +130,29 @@ def handle_successful_payment(data: dict, db: Session, background_tasks: Backgro
                 "message": f"Invalid currency: {currency}. Only NGN is supported."
             }
         
-        # Find pending checkout
+        # Find pending checkout (must not be expired)
+        from datetime import timezone as tz
+        now_utc = datetime.now(tz.utc)
         pending = db.query(models.PendingCheckout).filter(
             models.PendingCheckout.payment_reference == reference,
-            models.PendingCheckout.status == "pending"
+            models.PendingCheckout.status == "pending",
+            models.PendingCheckout.expires_at > now_utc  # SECURITY: Don't process expired checkouts
         ).first()
         
         if not pending:
+            # Check if it was expired
+            expired_checkout = db.query(models.PendingCheckout).filter(
+                models.PendingCheckout.payment_reference == reference,
+                models.PendingCheckout.status == "pending",
+                models.PendingCheckout.expires_at <= now_utc
+            ).first()
+            
+            if expired_checkout:
+                logger.warning(f"Checkout expired for reference: {reference}")
+                expired_checkout.status = "expired"
+                db.commit()
+                return {"status": "expired", "message": "Checkout session has expired"}
+            
             logger.warning(f"No pending checkout found for reference: {reference}")
             return {"status": "not_found"}
         

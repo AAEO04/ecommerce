@@ -46,16 +46,35 @@ export default function CheckoutPage() {
 
     const validate = async () => {
       try {
-        await validateCart(items.map(i => ({ variant_id: i.variant_id!, quantity: i.quantity })))
+        // Filter out items with undefined variant_id (corrupted/legacy items)
+        const validItems = items.filter(i => i.variant_id !== undefined && i.variant_id !== null)
+
+        if (validItems.length !== items.length) {
+          console.warn('Cart contains items without variant_id - these will be skipped during validation')
+          toast.error("Some cart items are invalid. Please remove and re-add them.", {
+            icon: '⚠️',
+            style: { background: '#000', color: '#fff', border: '1px solid #ff6b00' }
+          })
+          return
+        }
+
+        if (validItems.length === 0) return
+
+        await validateCart(validItems.map(i => ({ variant_id: i.variant_id!, quantity: i.quantity })))
       } catch (error: any) {
         console.error('Cart validation failed:', error)
-        if (error.message.includes('Insufficient stock')) {
+        if (error.message?.includes('Insufficient stock')) {
           toast.error("TOO SLOW! Some items in your cart just sold out.", {
             icon: '⚡',
             style: { background: '#000', color: '#fff', border: '1px solid #ff00ff' }
           })
+        } else if (error.message?.includes('not found') || error.message?.includes('404')) {
+          toast.error("Some products in your cart are no longer available.", {
+            icon: '🚫',
+            style: { background: '#000', color: '#fff', border: '1px solid #ff6b00' }
+          })
         } else {
-          toast.error("CART SYNC ISSUE. Please refresh.", {
+          toast.error("CART SYNC ISSUE. Please refresh the page.", {
             icon: '⚠️',
             style: { background: '#000', color: '#fff' }
           })
@@ -91,8 +110,31 @@ export default function CheckoutPage() {
 
     const fullAddress = `${address}, ${city}, ${state} ${zipCode}`
 
+    // Filter items with valid variant_id
+    const validItems = items.filter(i => i.variant_id !== undefined && i.variant_id !== null)
+
+    if (validItems.length === 0) {
+      toast.error("Your cart is empty or contains invalid items. Please add items again.", {
+        icon: '⚠️',
+        style: { background: '#000', color: '#fff' }
+      })
+      setLoading(false)
+      setIsSubmitting(false)
+      return
+    }
+
+    if (validItems.length !== items.length) {
+      toast.error("Some cart items are invalid and were removed. Please review and retry.", {
+        icon: '⚠️',
+        style: { background: '#000', color: '#fff', border: '1px solid #ff6b00' }
+      })
+      setLoading(false)
+      setIsSubmitting(false)
+      return
+    }
+
     const payload: CheckoutPayload = {
-      cart: items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
+      cart: validItems.map((i) => ({ variant_id: i.variant_id!, quantity: i.quantity })),
       customer_name: name,
       customer_email: email,
       customer_phone: phone,

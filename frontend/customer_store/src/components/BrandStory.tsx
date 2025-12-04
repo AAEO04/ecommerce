@@ -64,25 +64,6 @@ export function BrandStory() {
                 MAD RUSH is the collision of underground art, performance fabrics, and nightlife energy. Every release is numbered, archived, and built to withstand motion blur.
               </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white">12+</h3>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Cities Activated</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white">48</h3>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Limited Capsules</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white">9K+</h3>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Community Drops</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-black text-white">24/7</h3>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">Support Signal</p>
-              </div>
-            </div>
           </motion.div>
 
           <div className="grid gap-6">

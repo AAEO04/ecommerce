@@ -9,7 +9,6 @@ const Categories = dynamic(() => import('@/components/Categories').then(mod => m
 const Newsletter = dynamic(() => import('@/components/Newsletter').then(mod => mod.Newsletter))
 const BrandStory = dynamic(() => import('@/components/BrandStory').then(mod => mod.BrandStory))
 const NewArrivalsCarousel = dynamic(() => import('@/components/NewArrivalsCarousel').then(mod => mod.NewArrivalsCarousel))
-const CommunityFeed = dynamic(() => import('@/components/CommunityFeed').then(mod => mod.CommunityFeed))
 const FAQ = dynamic(() => import('@/components/FAQ').then(mod => mod.FAQ))
 
 export default async function Home() {
@@ -52,10 +51,6 @@ export default async function Home() {
 
       <SectionReveal>
         <BestSellers bestSellers={bestSellers} />
-      </SectionReveal>
-
-      <SectionReveal>
-        <CommunityFeed />
       </SectionReveal>
 
       <SectionReveal>

@@ -102,17 +102,19 @@ type CartState = {
   getTotal: () => number
 }
 
-// Migration function to handle existing cart items with undefined prices
+// Migration function to handle existing cart items with undefined prices or missing variant_id
 const migrateCartData = (state: any) => {
   if (!state) return { items: [], savedForLater: [], undoStack: [] }
 
   const migrateItems = (items: any[]): CartItem[] =>
-    items.map(item => ({
-      ...item,
-      price: item.price ?? 0, // Ensure price is never undefined
-      size: item.size ?? undefined,
-      color: item.color ?? undefined,
-    }))
+    items
+      .filter(item => item.variant_id !== undefined && item.variant_id !== null) // Remove items without variant_id
+      .map(item => ({
+        ...item,
+        price: item.price ?? 0, // Ensure price is never undefined
+        size: item.size ?? undefined,
+        color: item.color ?? undefined,
+      }))
 
   return {
     items: migrateItems(state.items || []),

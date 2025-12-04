@@ -56,6 +56,9 @@ class Settings:
     COOKIE_SECURE: bool = os.getenv("COOKIE_SECURE", "false").lower() == "true"
     COOKIE_SAMESITE: str = os.getenv("COOKIE_SAMESITE", "lax")  # 'strict' breaks some flows
     COOKIE_MAX_AGE: int = int(os.getenv("COOKIE_MAX_AGE", "1800"))
+    # COOKIE_DOMAIN should be set to ".yourdomain.com" in production for cross-subdomain cookies
+    # Leave empty for localhost development
+    COOKIE_DOMAIN: str = os.getenv("COOKIE_DOMAIN", "")
     
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")

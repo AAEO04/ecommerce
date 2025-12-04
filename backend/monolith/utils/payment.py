@@ -307,9 +307,14 @@ def process_payment(amount: Decimal, email: str, reference: str,
         Dict containing payment result
     """
     try:
+        # SECURITY: Prevent mock mode in production
         if settings.PAYMENT_MODE == "mock":
-            # Mock payment for development
-            logger.info(f"Mock payment processed: {email} - NGN{amount} - Ref: {reference}")
+            if settings.ENVIRONMENT == "production":
+                logger.error("CRITICAL: Mock payment mode attempted in production!")
+                raise ValueError("Mock payment mode is not allowed in production environment")
+            
+            # Mock payment for development only
+            logger.warning(f"Mock payment processed (DEV ONLY): {email} - NGN{amount} - Ref: {reference}")
             return {
                 "status": "success",
                 "reference": reference,
@@ -368,15 +373,27 @@ def verify_payment(reference: str) -> dict:
         Dict containing verification result
     """
     try:
+        # SECURITY: Prevent mock mode in production
         if settings.PAYMENT_MODE == "mock":
+            if settings.ENVIRONMENT == "production":
+                logger.error("CRITICAL: Mock payment verification attempted in production!")
+                raise ValueError("Mock payment mode is not allowed in production environment")
+            
+            logger.warning(f"Mock payment verification (DEV ONLY): {reference}")
+            # Return structure that matches real Paystack response
             return {
                 "status": "success",
                 "verified": True,
                 "message": "Payment verification (mock mode)",
-                "amount": constants.PAYSTACK_MIN_AMOUNT,  # Mock amount in kobo
-                "currency": "NGN",
-                "payment_date": "2024-01-01T00:00:00.000000Z",
-                "channel": "card"
+                "data": {
+                    "reference": reference,
+                    "amount": 10000,  # 100 NGN in kobo - will be compared against order
+                    "currency": "NGN",
+                    "status": "success",
+                    "paid_at": "2024-01-01T00:00:00.000Z",
+                    "channel": "card",
+                    "customer": {"email": "mock@test.com"}
+                }
             }
 
         if not settings.PAYSTACK_SECRET_KEY:
