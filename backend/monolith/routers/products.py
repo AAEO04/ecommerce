@@ -151,11 +151,10 @@ def get_best_sellers(
 
     best_sellers: List[schemas.BestSellerProduct] = []
     for product, units_sold, revenue in products:
+        # Use sales data for ranking internally, but don't expose it publicly
         best_sellers.append(
             schemas.BestSellerProduct(
-                product=schemas.ProductResponse.from_orm(product),
-                unitsSold=int(units_sold or 0),
-                revenue=float(revenue or 0),
+                product=schemas.ProductResponse.from_orm(product)
             )
         )
 

@@ -49,8 +49,6 @@ class ProductResponse(BaseModel):
 
 class BestSellerProduct(BaseModel):
     product: ProductResponse
-    unitsSold: int
-    revenue: float
 
 
 

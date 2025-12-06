@@ -82,8 +82,8 @@ export function Header() {
               <Image src="/logo.png" alt="MAD RUSH Logo" width={50} height={50} className="w-12 h-12 drop-shadow-[0_0_15px_rgba(173,255,0,0.6)]" />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-xl font-black tracking-[0.3em] text-white group-hover:text-electric-volt-green transition-colors duration-300">MAD RUSH</span>
-              <span className="text-[10px] uppercase tracking-[0.5em] text-electric-volt-green hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity">No chills. Stay kinetic.</span>
+              <span className="text-xl font-black tracking-[0.3em] text-white group-hover:text-electric-volt-green transition-colors duration-300">MADRUSH</span>
+              <span className="text-[10px] uppercase tracking-[0.5em] text-electric-volt-green hidden sm:block opacity-80 group-hover:opacity-100 transition-opacity">No chills.just Madrush.</span>
             </div>
           </Link>
 

@@ -57,9 +57,9 @@ async def paystack_webhook(request: Request, background_tasks: BackgroundTasks, 
             
             if existing_event:
                 logger.warning(f"SECURITY: Duplicate webhook event detected: {event_id}")
-                # Log the duplicate attempt
+                # Log the duplicate attempt with UUID to prevent collisions
                 duplicate_event = models.WebhookEvent(
-                    event_id=f"{event_id}_duplicate_{datetime.now().timestamp()}",
+                    event_id=f"{event_id}_duplicate_{uuid.uuid4()}",
                     event_type=event_type,
                     payment_reference=data.get("reference"),
                     status="duplicate",

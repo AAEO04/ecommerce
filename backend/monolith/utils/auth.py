@@ -109,3 +109,41 @@ def create_admin_token(email: str) -> str:
         "iat": datetime.utcnow()
     }
     return create_access_token(data)
+
+def get_current_admin_user(token: str = Cookie(None, alias="admin_token"), db: Session = Depends(get_db)) -> models.AdminUser:
+    """
+    Get current admin user from cookie and return AdminUser model instance.
+    This is used by admin dashboard endpoints that need the full AdminUser object.
+    """
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+    
+    payload = verify_token(token)
+    
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+    
+    # Query the admin user from database
+    admin_user = db.query(models.AdminUser).filter(models.AdminUser.email == email).first()
+    if not admin_user or not admin_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin user not found or inactive"
+        )
+    
+    # Verify user type is admin
+    if payload.get("user_type") != ADMIN_ROLE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    
+    return admin_user

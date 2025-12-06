@@ -31,8 +31,6 @@ export interface Product {
 
 export interface BestSellerProduct {
   product: Product;
-  unitsSold: number;
-  revenue: number;
 }
 
 export async function fetchProducts(): Promise<Product[]> {

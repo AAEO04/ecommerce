@@ -16,7 +16,7 @@ from config import settings
 from utils.payment import process_payment
 from utils import auth
 from utils.notifications import send_order_confirmation
-from utils.rate_limiting import checkout_rate_limit
+from utils.rate_limiting import checkout_rate_limit, limiter
 from utils.error_handling import SecureErrorHandler
 from utils.exceptions import ProductNotFoundException, InsufficientStockException, PaymentFailedException
 
@@ -337,7 +337,9 @@ def process_refund(
 
 
 @router.post("/lookup")
+@limiter.limit("5/15minutes")  # Aggressive rate limiting to prevent enumeration attacks
 def lookup_orders(
+    request: Request,
     email: str,
     order_number: Optional[str] = None,
     db: Session = Depends(get_db)

@@ -41,8 +41,7 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
     return null
   }
 
-  const totalUnits = bestSellers.reduce((sum, entry) => sum + (entry.unitsSold || 0), 0)
-  const totalRevenue = bestSellers.reduce((sum, entry) => sum + (entry.revenue || 0), 0)
+
 
   const handleQuickAdd = (product: Product) => {
     // Use the first available variant
@@ -120,12 +119,11 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
                 whileHover={{ y: -8 }}
                 className="group relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950/80 p-6 backdrop-blur flex flex-col"
               >
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.35em] text-white/60 mb-2">
+                <div className="flex items-center justify-start text-xs font-semibold uppercase tracking-[0.35em] text-white/60 mb-2">
                   <span className="flex items-center gap-2 text-electric-volt-green">
                     <Flame className="h-4 w-4" />
                     #{index + 1}
                   </span>
-                  <span className="text-white/50">{entry.unitsSold} orders</span>
                 </div>
 
                 <Link href={`/product/${product.id}`} className="block relative aspect-square w-full rounded-2xl overflow-hidden border border-white/10 bg-white/5 mb-4">
@@ -170,21 +168,6 @@ export function BestSellers({ bestSellers }: BestSellersProps) {
             )
           })}
         </motion.div>
-        {/* Summary cards moved below grid for mobile responsiveness */}
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
-            <p className="text-sm uppercase tracking-[0.4em] text-white/50">Revenue pulse</p>
-            <p className="mt-2 text-3xl font-black">{formatNGN(totalRevenue)}</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
-            <p className="text-sm uppercase tracking-[0.4em] text-white/50">Sell through</p>
-            <p className="mt-2 text-3xl font-black">{bestSellers.length} styles</p>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white text-center">
-            <p className="text-sm uppercase tracking-[0.4em] text-white/50">Total units</p>
-            <p className="mt-2 text-3xl font-black">{totalUnits}</p>
-          </div>
-        </div>
       </div>
     </section>
   )
