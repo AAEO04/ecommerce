@@ -14,7 +14,8 @@ import {
   ShoppingBag,
   AlertCircle,
   CheckCircle,
-  FolderTree
+  FolderTree,
+  Image
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { adminApi } from '@/lib/admin/api'
@@ -31,12 +32,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   useEffect(() => {
     let isMounted = true
-    
+
     const checkAuth = async () => {
       try {
         const isAuth = await adminApi.isAuthenticated()
         if (!isMounted) return // Prevent state update on unmounted component
-        
+
         setIsAuthenticated(isAuth)
         if (!isAuth) {
           router.push('/admin/login')
@@ -51,9 +52,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         }
       }
     }
-    
+
     checkAuth()
-    
+
     return () => {
       isMounted = false
     }
@@ -74,6 +75,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Categories', href: '/admin/categories', icon: FolderTree },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+    { name: 'Lookbook', href: '/admin/lookbook', icon: Image },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ]
 
