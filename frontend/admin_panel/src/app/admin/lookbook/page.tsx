@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { Upload, Trash2, Image as ImageIcon, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { uploadMultipleToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 interface UploadedImage {
     url: string
@@ -113,8 +113,8 @@ export default function LookbookPage() {
             {/* Upload Zone */}
             <div
                 className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors ${dragActive
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-300 hover:border-gray-400'
                     }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
