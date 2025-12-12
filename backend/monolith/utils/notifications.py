@@ -188,8 +188,29 @@ def send_order_confirmation(order):
         tags=tags
     )
     
-    # Send WhatsApp if phone number is available
-    if order.customer_phone:
-        whatsapp_message = f"✅ Order Confirmed!\n\nOrder #{order.order_number}\nTotal: ₦{order.total_amount:,.2f}\n\nThank you for shopping with MAD RUSH! 🛍️"
-        send_whatsapp(order.customer_phone, whatsapp_message)
+    # Send WhatsApp notification to STORE OWNER (not customer)
+    # This is for manual shipping - owner needs to know about new orders
+    if settings.OWNER_PHONE_NUMBER:
+        owner_message = f"""🛍️ NEW ORDER ALERT!
+
+Order: #{order.order_number}
+Customer: {order.customer_name}
+Phone: {order.customer_phone}
+Total: ₦{order.total_amount:,.2f}
+
+Items:
+{chr(10).join([f"• {item.variant.product.name if item.variant and item.variant.product else 'Product'} - {item.variant.size if item.variant else ''} x{item.quantity}" for item in order.items[:5]])}
+
+Shipping Address:
+{order.shipping_address}
+
+Payment: {order.payment_status.upper()}
+Status: {order.status.upper()}
+
+👉 Check admin panel for full details"""
+        
+        send_whatsapp(settings.OWNER_PHONE_NUMBER, owner_message)
+        logger.info(f"Owner notification sent for order {order.order_number}")
+    else:
+        logger.warning("OWNER_PHONE_NUMBER not configured - owner notification not sent")
 

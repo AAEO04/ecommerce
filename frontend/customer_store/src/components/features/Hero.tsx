@@ -126,7 +126,7 @@ export function Hero({ featuredProducts }: HeroProps) {
               className="space-y-5"
             >
               <p className="text-[10px] sm:text-xs uppercase text-white/60 tracking-[0.2em]">
-                DROP 07 · HYPER RUSH
+                DROP 01 · HYPER RUSH
               </p>
 
               <h1 className="font-black leading-tight text-3xl sm:text-4xl md:text-5xl lg:text-6xl break-words">

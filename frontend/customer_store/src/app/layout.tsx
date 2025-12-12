@@ -23,9 +23,9 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: 'MAD RUSH - NO CHILLS, Just Pure Adrenaline',
+  title: 'MAD RUSH - NO CHILLS, Just MADRUSH',
   description: 'Raw, rebellious streetwear. Kinetic chaos energy. Motion-blurred style. Zero chill, all rush. Express your bold personality with MAD RUSH.',
-  keywords: 'streetwear, urban fashion, mad rush, no chills, kinetic chaos, bold style, graffiti fashion',
+  keywords: 'streetwear, urban fashion, mad rush, no chills, Nigerian, fashion,kinetic chaos, bold style, graffiti fashion',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

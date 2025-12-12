@@ -53,7 +53,7 @@ export default function AboutPage() {
                 Built for velocity. Fueled by community. No chills, just RUSH.
               </h1>
               <p className="text-lg text-white/70">
-                We’re a Lagos-born, globally wired studio crafting kinetic streetwear with encrypted experiences, tactile fabrics, and limited-run drip that mirrors movement.
+                We’re a Lagos-born, globally wired studio crafting kinetic streetwear with  tactile fabrics, and limited-run drip that mirrors movement.
               </p>
               <div className="flex flex-wrap gap-6">
                 {stats.map((stat) => (
@@ -69,7 +69,7 @@ export default function AboutPage() {
                 <Image src="/creative-direct.png" alt="Mad Rush" fill className="object-cover" />
               </div>
               <div className="relative space-y-4">
-                <p className="text-sm uppercase tracking-[0.5em] text-white/50">Drop 07 dossier</p>
+                <p className="text-sm uppercase tracking-[0.5em] text-white/50">Drop 01 dossier</p>
                 <p className="text-3xl font-bold">“When the city doesn’t sleep, neither do our ideas.”</p>
                 <p className="text-white/70 text-sm">— Creative Director, MAD RUSH</p>
               </div>

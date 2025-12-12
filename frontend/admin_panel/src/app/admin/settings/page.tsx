@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [storeSettings, setStoreSettings] = useState({
     storeName: 'MAD RUSH',
-    tagline: 'NO CHILLS, Just Style',
+    tagline: 'NO CHILLS, Just MADRUSH',
     contactEmail: 'contact@Madrush.com.ng',
     phoneNumber: '+1 (555) 123-4567',
     businessAddress: '123 Fashion Street, Style City, SC 12345'

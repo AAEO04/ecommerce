@@ -411,8 +411,8 @@ function OrdersPageContent() {
                       <tbody>
                         {selectedOrder.items?.map((item) => (
                           <tr key={item.id} className="border-t border-gray-100">
-                            <td className="px-4 py-3 font-medium text-gray-900">{item.variant?.product.name || item.product_name}</td>
-                            <td className="px-4 py-3 text-sm text-gray-600">{item.variant?.size || item.variant_name} / {item.variant?.color || ''}</td>
+                            <td className="px-4 py-3 font-medium text-gray-900">{item.variant?.product?.name || 'Product'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-600">{item.variant?.size || 'N/A'} / {item.variant?.color || 'N/A'}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">{item.quantity}</td>
                             <td className="px-4 py-3 text-sm text-gray-600">₦{parseFloat(item.unit_price.toString()).toFixed(2)}</td>
                             <td className="px-4 py-3 font-semibold text-gray-900">₦{parseFloat(item.total_price.toString()).toFixed(2)}</td>

@@ -1,40 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Zap, Heart, TrendingUp, Shield } from 'lucide-react'
+import Image from 'next/image'
 
 export function BrandStory() {
-  const features = [
-    {
-      icon: Zap,
-      title: 'Lightning Fast',
-      description: 'Experience the rush with our quick delivery and seamless shopping',
-      accentBar: 'bg-electric-volt-green',
-      accentText: 'text-electric-volt-green'
-    },
-    {
-      icon: Heart,
-      title: 'Customer First',
-      description: 'Your satisfaction is our priority. We go the extra mile for you',
-      accentBar: 'bg-accent-red-500',
-      accentText: 'text-accent-red-500'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Trending Products',
-      description: 'Stay ahead with the latest and hottest items in the market',
-      accentBar: 'bg-accent-purple-600',
-      accentText: 'text-accent-purple-600'
-    },
-    {
-      icon: Shield,
-      title: 'Secure Shopping',
-      description: 'Shop with confidence knowing your data is protected',
-      accentBar: 'bg-white/70',
-      accentText: 'text-white/80'
-    }
-  ]
-
   return (
     <section className="py-32 bg-black relative overflow-hidden">
       <div className="absolute inset-0 hero-grid opacity-20" aria-hidden="true" />
@@ -66,29 +35,32 @@ export function BrandStory() {
             </div>
           </motion.div>
 
-          <div className="grid gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 hover:bg-white/10 transition-colors"
-              >
-                <div className={`absolute top-0 left-0 h-full w-1 opacity-0 group-hover:opacity-100 transition-opacity ${feature.accentBar}`} />
-                <div className="flex items-start gap-6">
-                  <div className={`p-3 rounded-xl bg-white/5 ${feature.accentText}`}>
-                    <feature.icon className="h-6 w-6" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-white uppercase tracking-wide">{feature.title}</h3>
-                    <p className="text-sm text-gray-400 leading-relaxed">{feature.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* Campaign Image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
+              <Image
+                src="/brand-lifestyle.jpg"
+                alt="Wear it however TF you want - MAD RUSH Beanie Campaign"
+                width={800}
+                height={1000}
+                className="w-full h-auto object-cover"
+                priority
+              />
+
+              {/* Subtle overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            {/* Decorative accent */}
+            <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full bg-electric-volt-green/20 blur-3xl" />
+            <div className="absolute -top-4 -left-4 h-16 w-16 rounded-full bg-electric-volt-green/10 blur-2xl" />
+          </motion.div>
         </div>
       </div>
     </section>

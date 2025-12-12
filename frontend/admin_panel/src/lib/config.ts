@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 const isProd = process.env.NODE_ENV === 'production'
-// Hardcoded API URL as requested to resolve Vercel env var issues
-const PROD_API_URL = 'https://madrush.fly.dev';
+// Use api subdomain for Safari/Brave cookie compatibility
+const PROD_API_URL = 'https://api.madrush.com.ng';
 const DEV_API_URL = 'http://localhost:8000';
 
 // In production, ALWAYS use the hardcoded HTTPS URL

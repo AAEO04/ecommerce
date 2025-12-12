@@ -38,6 +38,10 @@ class Settings:
     META_PHONE_NUMBER_ID: str = os.getenv("META_PHONE_NUMBER_ID", "")
     META_API_VERSION: str = os.getenv("META_API_VERSION", "v18.0")
     
+    # Store Owner Phone Number for Order Notifications
+    # Format: 234XXXXXXXXXX (Nigerian number without + or spaces)
+    OWNER_PHONE_NUMBER: str = os.getenv("OWNER_PHONE_NUMBER", "")
+    
     # JWT Secret - REQUIRED
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY")
     if not JWT_SECRET_KEY:
