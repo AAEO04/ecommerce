@@ -95,6 +95,8 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     is_active: Optional[bool] = None
+    images: Optional[List[ProductImageCreate]] = None
+    variants: Optional[List[ProductVariantCreate]] = None
 
 # --- Order Schemas ---
 

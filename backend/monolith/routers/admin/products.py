@@ -115,13 +115,17 @@ def update_product(
     current_admin: dict = Depends(auth.get_current_admin_from_cookie),
     db: Session = Depends(get_db)
 ):
-    """Update a product"""
+    """Update a product including variants and images"""
 
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    product = db.query(models.Product).options(
+        joinedload(models.Product.variants),
+        joinedload(models.Product.images)
+    ).filter(models.Product.id == product_id).first()
+    
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Update fields
+    # Update basic fields
     if product_data.name is not None:
         product.name = product_data.name
     if product_data.description is not None:
@@ -130,6 +134,44 @@ def update_product(
         product.category = product_data.category
     if product_data.is_active is not None:
         product.is_active = product_data.is_active
+
+    # Update variants if provided
+    if product_data.variants is not None:
+        # Delete existing variants
+        db.query(models.ProductVariant).filter(
+            models.ProductVariant.product_id == product_id
+        ).delete(synchronize_session=False)
+        
+        # Create new variants
+        for variant_data in product_data.variants:
+            sku = generate_sku(product.name, variant_data.size, variant_data.color)
+            variant = models.ProductVariant(
+                product_id=product_id,
+                size=variant_data.size,
+                color=variant_data.color,
+                price=variant_data.price,
+                stock_quantity=variant_data.stock_quantity,
+                sku=sku
+            )
+            db.add(variant)
+
+    # Update images if provided
+    if product_data.images is not None:
+        # Delete existing images
+        db.query(models.ProductImage).filter(
+            models.ProductImage.product_id == product_id
+        ).delete(synchronize_session=False)
+        
+        # Create new images
+        for image_data in product_data.images:
+            image = models.ProductImage(
+                product_id=product_id,
+                image_url=str(image_data.image_url),
+                alt_text=image_data.alt_text,
+                display_order=image_data.display_order,
+                is_primary=image_data.is_primary
+            )
+            db.add(image)
 
     db.commit()
     db.refresh(product)
